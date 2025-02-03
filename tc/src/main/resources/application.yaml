@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:sqlserver://192.168.12.200:1433;databaseName=SASDEV;encrypt=true;trustServerCertificate=true;sslProtocol=TLSv1.2;loginTimeout=30;sendStringParametersAsUnicode=false;jdbcCompliantTruncation=false;disableStatementPooling=true
+    username: sa
+    password: SBACKUP21!
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+  jpa:
+    database-platform: org.hibernate.dialect.SQLServer2012Dialect
+    hibernate.ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate.show_sql: true
+      hibernate.format_sql: true
+server:
+  port: 8081
