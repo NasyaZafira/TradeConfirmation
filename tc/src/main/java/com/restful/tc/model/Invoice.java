@@ -8,7 +8,7 @@ import java.time.LocalDate;
 @Table(name = "invoice")
 public class Invoice {
     @Id
-    @GeneratedValue( strategy = GenerationType.AUTO)
+    @GeneratedValue( strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "no_inv")
@@ -19,6 +19,7 @@ public class Invoice {
 
     @Column(name = "dt_inv")
     private LocalDate dt_inv;
+
 
     public String getNoInvoice() {
         return no_inv;
