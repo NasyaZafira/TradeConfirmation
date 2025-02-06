@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import com.restful.tc.model.Invoice;
+import com.restful.tc.repository.InvRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,7 +24,7 @@ public class PDFGenerator {
         try (PdfWriter writer = new PdfWriter(outputStream);
              PdfDocument pdfDocument = new PdfDocument(writer);
              Document document = new Document(pdfDocument)) {
-            addTitleText(document, "Dinamic ttitle invoice Testing");
+            addTitleText(document, "Dinamic title invoice Testing");
 //            addTitleImage(document, invoice.getTitleImg(), true);
             addInvoiceTable(document, invoice);
         }
@@ -66,6 +68,10 @@ public class PDFGenerator {
 //        table.addCell(list);
         document.add(table);
     }
+
+    @Autowired
+    private InvRepository invoiceRepository;
+
     public byte[] generatePDFs(List<Invoice> invoices) throws IOException {
         ByteArrayOutputStream zipStream = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(zipStream)) {

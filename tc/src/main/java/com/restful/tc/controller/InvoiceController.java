@@ -4,10 +4,15 @@ import com.restful.tc.model.Invoice;
 import com.restful.tc.service.InvoiceService;
 import com.restful.tc.service.PDFGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -24,15 +29,31 @@ public class InvoiceController {
         this.pdfGenerator = pdfGenerator;
     }
 
-    @GetMapping("/generate-invoices")
-    public ResponseEntity<String> generateInvoices() {
-        try {
-            invoiceService.generateInvoicesPdf();
-            return ResponseEntity.ok("PDF invoices generated successfully!");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error generating PDF invoices: " + e.getMessage());
+    @GetMapping("/generate-and-download")
+    public ResponseEntity<InputStreamResource> generateAndDownloadInvoices() throws IOException {
+        // Panggil service untuk menghasilkan PDF dan ZIP
+        invoiceService.generateInvoicesPdf();
+
+        // Path ke file ZIP yang dihasilkan
+        String zipFilePath = System.getProperty("java.io.tmpdir") + File.separator + "invoices.zip";
+        File zipFile = new File(zipFilePath);
+
+        // Jika file ZIP berhasil dibuat, kirim sebagai respons
+        if (zipFile.exists()) {
+            InputStreamResource resource = new InputStreamResource(new FileInputStream(zipFile));
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoices.zip"); // Nama file yang akan diunduh
+            headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE); // Tipe konten untuk file biner
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(zipFile.length())
+                    .body(resource);
+        } else {
+            // Jika file ZIP tidak ditemukan, kembalikan respons error
+            return ResponseEntity.status(500)
+                    .body(null);
         }
     }
 
@@ -47,5 +68,10 @@ public class InvoiceController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
+    }
+
+    @GetMapping("/hello")
+    public String sayHello() {
+        return "Hello World";
     }
 }
