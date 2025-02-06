@@ -28,6 +28,7 @@ public class InvoiceService {
     @Autowired
     private InvRepository invoiceRepository;
 
+    private final List<String> pdfFileNames = new ArrayList<>();
 
     private final ThreadPoolExecutor executorService = new ThreadPoolExecutor(
             Runtime.getRuntime().availableProcessors(), // core pool size
@@ -36,46 +37,6 @@ public class InvoiceService {
             TimeUnit.SECONDS, // time unit for keep-alive time
             new LinkedBlockingQueue<>() // queue for holding tasks before they are executed
     );
-    private final List<String> pdfFileNames = new ArrayList<>();
-
-    public void generateInvoicesPdf() {
-//        List<Invoice> invoices = invoiceRepository.findAll();
-        List<Invoice> invoices = invoiceRepository.findFirst10ByOrderByNoInvAsc();
-        CountDownLatch latch = new CountDownLatch(invoices.size());
-        String tempDir = System.getProperty("java.io.tmpdir"); // Direktori sementara untuk menyimpan file PDF
-
-        for (Invoice invoice : invoices) {
-            executorService.submit(() -> {
-                System.out.println("ON WORKING Thread Name: " + Thread.currentThread().getName());
-                try {
-                    String fileName = createPdf(invoice, tempDir);
-                    synchronized (pdfFileNames) { // Sinkronisasi untuk menghindari masalah thread
-                        pdfFileNames.add(fileName);
-                    }
-                } catch (IOException | DocumentException e) {
-                    System.err.println("Error creating PDF for invoice " + invoice.getNoInvoice() + ": " + e.getMessage());
-                } finally {
-                    latch.countDown(); // Decrement the latch count
-                }
-            });
-        }
-        try {
-            latch.await(); // Wait for all threads to finish
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            System.err.println("Thread interrupted while waiting for PDF generation to complete.");
-        }
-        executorService.shutdown();
-        try {
-            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executorService.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-        createZip(tempDir);
-    }
 
     private String createPdf(Invoice invoice, String tempDir) throws IOException, DocumentException {
         Document document = new Document();
@@ -128,4 +89,44 @@ public class InvoiceService {
             System.err.println("Error creating ZIP file: " + e.getMessage());
         }
     }
+
+    public void generateInvoicesPdf() {
+//        List<Invoice> invoices = invoiceRepository.findAll();
+        List<Invoice> invoices = invoiceRepository.findFirst10ByOrderByNoInvAsc();
+        CountDownLatch latch = new CountDownLatch(invoices.size());
+        String tempDir = System.getProperty("java.io.tmpdir"); // Direktori sementara untuk menyimpan file PDF
+
+        for (Invoice invoice : invoices) {
+            executorService.submit(() -> {
+                System.out.println("ON WORKING Thread Name: " + Thread.currentThread().getName());
+                try {
+                    String fileName = createPdf(invoice, tempDir);
+                    synchronized (pdfFileNames) { // Sinkronisasi untuk menghindari masalah thread
+                        pdfFileNames.add(fileName);
+                    }
+                } catch (IOException | DocumentException e) {
+                    System.err.println("Error creating PDF for invoice " + invoice.getNoInvoice() + ": " + e.getMessage());
+                } finally {
+                    latch.countDown(); // Decrement the latch count
+                }
+            });
+        }
+        try {
+            latch.await(); // Wait for all threads to finish
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("Thread interrupted while waiting for PDF generation to complete.");
+        }
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        createZip(tempDir);
+    }
+
 }
