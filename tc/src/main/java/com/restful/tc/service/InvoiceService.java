@@ -44,14 +44,14 @@ public class InvoiceService {
             new LinkedBlockingQueue<>() // queue for holding tasks before they are executed
     );
 
-    private String createPdf(Invoice invoice, String tempDir) throws IOException, DocumentException {
+    private String createPdf(Invoice invoice, String tempDir, Integer count) throws IOException, DocumentException {
         String fileName = tempDir + File.separator + "invoice_" + invoice.getNoInvoice() + ".pdf";
-        int count = 1;
+        // int count = 1;
         File file = new File(fileName);
         while (file.exists()) {
             fileName = tempDir + File.separator + "invoice_" + invoice.getNoInvoice() + "_" + count + ".pdf";
             file = new File(fileName);
-            count++;
+            // count++;
         }
 
         // Convert HTML to PDF
@@ -100,11 +100,13 @@ public class InvoiceService {
         String tempDir = System.getProperty("java.io.tmpdir"); // Direktori sementara untuk menyimpan file PDF
         CountDownLatch latch = new CountDownLatch(invoices.size());
 
+        int count = 1;
         for (Invoice invoice : invoices) {
+            int finalCount = count;
             executorService.submit(() -> {
                 System.out.println("ON WORKING Thread Name: " + Thread.currentThread().getName());
                 try {
-                    String fileName = createPdf(invoice, tempDir);
+                    String fileName = createPdf(invoice, tempDir, finalCount);
                     pdfFileNames.add(fileName);
 
                 } catch (IOException | DocumentException e) {
