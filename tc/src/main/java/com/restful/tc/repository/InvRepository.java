@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface InvRepository extends JpaRepository<Invoice, Long> {
     //    List<Invoice> findAll();
-    List<Invoice> findFirst10ByOrderByNoInvAsc();
+    List<Invoice> findFirst5ByOrderByNoInvAsc();
 }

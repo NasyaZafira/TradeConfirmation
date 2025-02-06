@@ -1,9 +1,10 @@
 package com.restful.tc.service;
 
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Paragraph;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.draw.LineSeparator;
 import com.restful.tc.model.Invoice;
 import com.restful.tc.repository.InvRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +14,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -28,7 +25,8 @@ public class InvoiceService {
     @Autowired
     private InvRepository invoiceRepository;
 
-    private final List<String> pdfFileNames = new ArrayList<>();
+
+    private final List<String> pdfFileNames = new CopyOnWriteArrayList<>();
 
     private final ThreadPoolExecutor executorService = new ThreadPoolExecutor(
             Runtime.getRuntime().availableProcessors(), // core pool size
@@ -53,6 +51,23 @@ public class InvoiceService {
         PdfWriter.getInstance(document, new FileOutputStream(fileName));
 
         document.open();
+        //  garis horizontal
+        LineSeparator lineSeparator = new LineSeparator();
+        lineSeparator.setLineWidth(1f); //  ketebalan garis
+        // Font
+        Font regular = new Font(Font.FontFamily.HELVETICA, 12);
+        Font semibold = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
+        Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
+        //title
+        Paragraph title = new Paragraph("PT. BCA SEKURITAS", titleFont);
+        title.setAlignment(Element.ALIGN_LEFT);
+        document.add(title);
+        document.add(new Paragraph("Menara BCA - Grand Indonesia 41st Floow Suite 4101", semibold));
+        document.add(new Paragraph("JL. MH. Thamrin No 1 Jakarta 10310", semibold));
+        document.add(new Paragraph("Phone : 2358 7222 (Hunting), 2358 7277 (Sales); Fax : 2358 7250", semibold));
+        document.add(new Paragraph("NPWP : 01.357.392.8-054.000", semibold));
+        document.add(new Chunk(lineSeparator));
+
         document.add(new Paragraph("Invoice ID: " + invoice.getNoInvoice()));
         document.add(new Paragraph("Client Name: " + invoice.getNoCust()));
         document.add(new Paragraph("Invoice Date: " + invoice.getDate()));
@@ -63,7 +78,7 @@ public class InvoiceService {
     }
 
     private void createZip(String tempDir) {
-        String zipFileName = tempDir + File.separator + "invoices.zip";
+        String zipFileName = "D:\\" + "invoices.zip";
         try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFileName))) {
             for (String pdfFileName : pdfFileNames) {
                 File pdfFile = new File(pdfFileName);
@@ -81,7 +96,7 @@ public class InvoiceService {
                     // Hapus file PDF setelah di-zip
                     pdfFile.delete();
                 } else {
-                    System.err.println("File not found: " + pdfFileName);
+                    System.err.println("PDF berhasil di hapus dari Local temp : " + pdfFileName);
                 }
             }
             System.out.println("ZIP file created: " + zipFileName);
@@ -92,18 +107,17 @@ public class InvoiceService {
 
     public void generateInvoicesPdf() {
 //        List<Invoice> invoices = invoiceRepository.findAll();
-        List<Invoice> invoices = invoiceRepository.findFirst10ByOrderByNoInvAsc();
-        CountDownLatch latch = new CountDownLatch(invoices.size());
+        List<Invoice> invoices = invoiceRepository.findFirst5ByOrderByNoInvAsc();
         String tempDir = System.getProperty("java.io.tmpdir"); // Direktori sementara untuk menyimpan file PDF
+        CountDownLatch latch = new CountDownLatch(invoices.size());
 
         for (Invoice invoice : invoices) {
             executorService.submit(() -> {
                 System.out.println("ON WORKING Thread Name: " + Thread.currentThread().getName());
                 try {
                     String fileName = createPdf(invoice, tempDir);
-                    synchronized (pdfFileNames) { // Sinkronisasi untuk menghindari masalah thread
-                        pdfFileNames.add(fileName);
-                    }
+                    pdfFileNames.add(fileName);
+
                 } catch (IOException | DocumentException e) {
                     System.err.println("Error creating PDF for invoice " + invoice.getNoInvoice() + ": " + e.getMessage());
                 } finally {
