@@ -95,8 +95,14 @@ public class InvoiceService {
 
     public void generateInvoicesPdf() {
 //        List<Invoice> invoices = invoiceRepository.findAll();
-        List<Invoice> invoices = invoiceRepository.findFirst5ByOrderByNoInvAsc();
-        log.info("This is an info message");
+        // List<Invoice> invoices = invoiceRepository.findFirst5ByOrderByNoInvAsc();
+        List<Invoice> invoices = invoiceRepository.findDistinctNoCustOrderByDtInvDesc();
+
+        for (Invoice invoice : invoices) {
+            log.info("Cust No: {}", invoice.getNoCust());
+        }
+        // System.exit(0);
+
         String tempDir = System.getProperty("java.io.tmpdir"); // Direktori sementara untuk menyimpan file PDF
         CountDownLatch latch = new CountDownLatch(invoices.size());
 
