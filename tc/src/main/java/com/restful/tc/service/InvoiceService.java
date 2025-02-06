@@ -1,10 +1,12 @@
 package com.restful.tc.service;
 
+import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.draw.LineSeparator;
+import com.restful.tc.html.InvoiceHtmlGenerator;
 import com.restful.tc.model.Invoice;
 import com.restful.tc.repository.InvRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,8 @@ public class InvoiceService {
 
     @Autowired
     private InvRepository invoiceRepository;
+    @Autowired
+    private InvoiceHtmlGenerator invoiceHtmlGenerator;
 
 
     private final List<String> pdfFileNames = new CopyOnWriteArrayList<>();
@@ -37,9 +41,7 @@ public class InvoiceService {
     );
 
     private String createPdf(Invoice invoice, String tempDir) throws IOException, DocumentException {
-        Document document = new Document();
         String fileName = tempDir + File.separator + "invoice_" + invoice.getNoInvoice() + ".pdf";
-
         int count = 1;
         File file = new File(fileName);
         while (file.exists()) {
@@ -48,41 +50,23 @@ public class InvoiceService {
             count++;
         }
 
-        PdfWriter.getInstance(document, new FileOutputStream(fileName));
-
-        document.open();
-        //  garis horizontal
-        LineSeparator lineSeparator = new LineSeparator();
-        lineSeparator.setLineWidth(1f); //  ketebalan garis
-        // Font
-        Font regular = new Font(Font.FontFamily.HELVETICA, 12);
-        Font semibold = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
-        Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
-        //title
-        Paragraph title = new Paragraph("PT. BCA SEKURITAS", titleFont);
-        title.setAlignment(Element.ALIGN_LEFT);
-        document.add(title);
-        document.add(new Paragraph("Menara BCA - Grand Indonesia 41st Floow Suite 4101", semibold));
-        document.add(new Paragraph("JL. MH. Thamrin No 1 Jakarta 10310", semibold));
-        document.add(new Paragraph("Phone : 2358 7222 (Hunting), 2358 7277 (Sales); Fax : 2358 7250", semibold));
-        document.add(new Paragraph("NPWP : 01.357.392.8-054.000", semibold));
-        document.add(new Chunk(lineSeparator));
-
-        document.add(new Paragraph("Invoice ID: " + invoice.getNoInvoice()));
-        document.add(new Paragraph("Client Name: " + invoice.getNoCust()));
-        document.add(new Paragraph("Invoice Date: " + invoice.getDate()));
-        document.close();
-
+        // Convert HTML to PDF
+        String htmlContent = invoiceHtmlGenerator.generateHtml(invoice);
+        System.out.println("HTML Content: " + htmlContent); // Debug HTML content
+        HtmlConverter.convertToPdf(htmlContent, new FileOutputStream(fileName));
         System.out.println("PDF created: " + fileName); // Log the creation of the PDF
+
         return fileName;
     }
 
     private void createZip(String tempDir) {
-        String zipFileName = "D:\\" + "invoices.zip";
+        String downloadsDir = System.getProperty("user.home") + File.separator + "Downloads";
+        String zipFileName = downloadsDir + File.separator + "invoices.zip";
+
         try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFileName))) {
             for (String pdfFileName : pdfFileNames) {
                 File pdfFile = new File(pdfFileName);
-                if (pdfFile.exists()) { // Check if the file exists
+                if (pdfFile.exists()) { // Periksa apakah file PDF ada
                     try (FileInputStream fis = new FileInputStream(pdfFile)) {
                         ZipEntry zipEntry = new ZipEntry(pdfFile.getName());
                         zipOut.putNextEntry(zipEntry);
@@ -96,7 +80,7 @@ public class InvoiceService {
                     // Hapus file PDF setelah di-zip
                     pdfFile.delete();
                 } else {
-                    System.err.println("PDF berhasil di hapus dari Local temp : " + pdfFileName);
+                    System.err.println("PDF berhasil dihapus dari Local temp: " + pdfFileName);
                 }
             }
             System.out.println("ZIP file created: " + zipFileName);
@@ -126,7 +110,8 @@ public class InvoiceService {
             });
         }
         try {
-            latch.await(); // Wait for all threads to finish
+            latch.await();
+            System.out.println("All threads completed. Proceeding to create ZIP.");// Wait for all threads to finish
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             System.err.println("Thread interrupted while waiting for PDF generation to complete.");
