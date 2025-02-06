@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface InvRepository extends JpaRepository<Invoice, Long> {
-    List<Invoice> findAll();
+    //    List<Invoice> findAll();
+    List<Invoice> findFirst10ByOrderByNoInvAsc();
 }
