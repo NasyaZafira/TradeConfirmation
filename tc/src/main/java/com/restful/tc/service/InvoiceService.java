@@ -21,9 +21,13 @@ import java.util.concurrent.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
 @Service
 public class InvoiceService {
-
+    private static final Logger log = LoggerFactory.getLogger(InvoiceService.class);
     @Autowired
     private InvRepository invoiceRepository;
     @Autowired
@@ -92,6 +96,7 @@ public class InvoiceService {
     public void generateInvoicesPdf() {
 //        List<Invoice> invoices = invoiceRepository.findAll();
         List<Invoice> invoices = invoiceRepository.findFirst5ByOrderByNoInvAsc();
+        log.info("This is an info message");
         String tempDir = System.getProperty("java.io.tmpdir"); // Direktori sementara untuk menyimpan file PDF
         CountDownLatch latch = new CountDownLatch(invoices.size());
 
