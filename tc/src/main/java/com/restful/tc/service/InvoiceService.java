@@ -1,6 +1,7 @@
 package com.restful.tc.service;
 
 
+
 //import com.itextpdf.kernel.pdf.PdfWriter;
 //import com.itextpdf.text.*;
 //import com.itextpdf.text.pdf.PdfDocument;
@@ -11,14 +12,24 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.layout.Document;
+
+import com.itextpdf.html2pdf.HtmlConverter;
+
 import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+
 import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.pdf.PdfContentByte;
+
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.draw.LineSeparator;
+import com.restful.tc.html.InvoiceHtmlGenerator;
+
 import com.restful.tc.model.Invoice;
 import com.restful.tc.repository.InvRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,11 +45,17 @@ import java.util.concurrent.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
 @Service
 public class InvoiceService {
-
+    private static final Logger log = LoggerFactory.getLogger(InvoiceService.class);
     @Autowired
     private InvRepository invoiceRepository;
+    @Autowired
+    private InvoiceHtmlGenerator invoiceHtmlGenerator;
 
 
     private final List<String> pdfFileNames = new CopyOnWriteArrayList<>();
@@ -50,6 +67,7 @@ public class InvoiceService {
             TimeUnit.SECONDS, // time unit for keep-alive time
             new LinkedBlockingQueue<>() // queue for holding tasks before they are executed
     );
+
 
     private String createPdf(Invoice invoice, String tempDir) throws IOException {
 //        Document document = new Document();
@@ -82,12 +100,18 @@ public class InvoiceService {
 
         /*
         int count = 1;
+
+    private String createPdf(Invoice invoice, String tempDir, Integer count) throws IOException, DocumentException {
+        String fileName = tempDir + File.separator + "invoice_" + invoice.getNoInvoice() + ".pdf";
+        // int count = 1;
+
         File file = new File(fileName);
         while (file.exists()) {
             fileName = tempDir + File.separator + "invoice_" + invoice.getNoInvoice() + "_" + count + ".pdf";
             file = new File(fileName);
-            count++;
+            // count++;
         }
+
 
 
         PdfWriter.getInstance(document, new FileOutputStream(fileName));
@@ -117,17 +141,27 @@ public class InvoiceService {
 
         System.out.println("PDF created: " + fileName); // Log the creation of the PDF
          */
+
+        // Convert HTML to PDF
+        String htmlContent = invoiceHtmlGenerator.generateHtml(invoice);
+        System.out.println("HTML Content: " + htmlContent); // Debug HTML content
+        HtmlConverter.convertToPdf(htmlContent, new FileOutputStream(fileName));
+        System.out.println("PDF created: " + fileName); // Log the creation of the PDF
+
+
         return fileName;
 
 
     }
 
     private void createZip(String tempDir) {
-        String zipFileName = "D:\\" + "invoices.zip";
+        String downloadsDir = System.getProperty("user.home") + File.separator + "Downloads";
+        String zipFileName = downloadsDir + File.separator + "invoices.zip";
+
         try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFileName))) {
             for (String pdfFileName : pdfFileNames) {
                 File pdfFile = new File(pdfFileName);
-                if (pdfFile.exists()) { // Check if the file exists
+                if (pdfFile.exists()) { // Periksa apakah file PDF ada
                     try (FileInputStream fis = new FileInputStream(pdfFile)) {
                         ZipEntry zipEntry = new ZipEntry(pdfFile.getName());
                         zipOut.putNextEntry(zipEntry);
@@ -141,7 +175,7 @@ public class InvoiceService {
                     // Hapus file PDF setelah di-zip
                     pdfFile.delete();
                 } else {
-                    System.err.println("PDF berhasil di hapus dari Local temp : " + pdfFileName);
+                    System.err.println("PDF berhasil dihapus dari Local temp: " + pdfFileName);
                 }
             }
             System.out.println("ZIP file created: " + zipFileName);
@@ -152,7 +186,14 @@ public class InvoiceService {
 
     public void generateInvoicesPdf() {
 //        List<Invoice> invoices = invoiceRepository.findAll();
-        List<Invoice> invoices = invoiceRepository.findFirst5ByOrderByNoInvAsc();
+        // List<Invoice> invoices = invoiceRepository.findFirst5ByOrderByNoInvAsc();
+        List<Invoice> invoices = invoiceRepository.findDistinctNoCustOrderByDtInvDesc();
+
+        for (Invoice invoice : invoices) {
+            log.info("Cust No: {}", invoice.getNoCust());
+        }
+        // System.exit(0);
+
         String tempDir = System.getProperty("java.io.tmpdir"); // Direktori sementara untuk menyimpan file PDF
         for (Invoice invoice : invoices) {
             try {
@@ -164,11 +205,13 @@ public class InvoiceService {
         /*
         CountDownLatch latch = new CountDownLatch(invoices.size());
 
+        int count = 1;
         for (Invoice invoice : invoices) {
+            int finalCount = count;
             executorService.submit(() -> {
                 System.out.println("ON WORKING Thread Name: " + Thread.currentThread().getName());
                 try {
-                    String fileName = createPdf(invoice, tempDir);
+                    String fileName = createPdf(invoice, tempDir, finalCount);
                     pdfFileNames.add(fileName);
 
                 } catch ( Exception e) {
@@ -179,7 +222,8 @@ public class InvoiceService {
             });
         }
         try {
-            latch.await(); // Wait for all threads to finish
+            latch.await();
+            System.out.println("All threads completed. Proceeding to create ZIP.");// Wait for all threads to finish
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             System.err.println("Thread interrupted while waiting for PDF generation to complete.");
