@@ -10,8 +10,6 @@ public class TcApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(TcApplication.class, args);
-
-
 	}
 
 }

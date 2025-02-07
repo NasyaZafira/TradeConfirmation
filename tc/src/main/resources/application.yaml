@@ -12,5 +12,5 @@ spring:
       hibernate.format_sql: true
 #      hibernate.dialect: org.hibernate.dialect.SQLServer2012Dialect
 server:
-  port: 5050
+  port: 8079
 
