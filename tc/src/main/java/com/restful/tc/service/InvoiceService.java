@@ -8,26 +8,17 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.layout.Document;
-
-import com.itextpdf.html2pdf.HtmlConverter;
-
+import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
-
 import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Element;
-import com.itextpdf.text.pdf.PdfContentByte;
-
-import com.itextpdf.text.*;
-import com.itextpdf.text.pdf.draw.LineSeparator;
-
-
 import com.restful.tc.model.Invoice;
 import com.restful.tc.repository.InvRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
@@ -40,10 +31,6 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 @Service
 public class InvoiceService {
@@ -98,9 +85,20 @@ public class InvoiceService {
         Cell cell = new Cell(1, 1).add(new Paragraph("TRADE CONFIRMATION"));
         cell.setHorizontalAlignment(HorizontalAlignment.CENTER);
         cell.setTextAlignment(TextAlignment.CENTER);
+        cell.setBorder(Border.NO_BORDER);
         table1.addCell(cell);
-        doc.add(table1);
 
+
+        float columnWidth[] = {80, 300, 100, 80};
+        Table table2 = new Table(2);
+        Cell cell2 = new Cell();
+        cell2.add(new Paragraph("To"));
+        cell2.setBorder(Border.NO_BORDER);
+        table2.addCell(cell2);
+
+
+        doc.add(table1);
+        doc.add(table2);
         doc.close();
         System.out.println("PDF created: " + fileName); // Log the creation of the PDF
         // Convert HTML to PDF
