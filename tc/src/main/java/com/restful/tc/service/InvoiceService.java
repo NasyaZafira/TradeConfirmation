@@ -141,8 +141,9 @@ public class InvoiceService {
     }
 
     public void generateInvoicesPdf() {
+        //List<Invoice> invoices = invoiceRepository.findDistinctNoCustByToday(); // kalau sudah live prod pakai ini
+        List<Invoice> invoices = invoiceRepository.finddistinct10Nocustorderbydtinvdesc();
 
-        List<Invoice> invoices = invoiceRepository.findDistinctNoCustOrderByDtInvDesc();
 
         for (Invoice invoice : invoices) {
             log.info("Cust No: {}", invoice.getNoCust());
