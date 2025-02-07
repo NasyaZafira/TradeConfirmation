@@ -1,11 +1,7 @@
 package com.restful.tc.service;
 
 
-
-//import com.itextpdf.kernel.pdf.PdfWriter;
-//import com.itextpdf.text.*;
-//import com.itextpdf.text.pdf.PdfDocument;
-//import com.itextpdf.text.pdf.draw.LineSeparator;
+import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -21,14 +17,14 @@ import com.itextpdf.layout.element.Table;
 
 import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.pdf.PdfContentByte;
 
 import com.itextpdf.text.*;
-import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.draw.LineSeparator;
-import com.restful.tc.html.InvoiceHtmlGenerator;
+
 
 import com.restful.tc.model.Invoice;
 import com.restful.tc.repository.InvRepository;
@@ -54,8 +50,8 @@ public class InvoiceService {
     private static final Logger log = LoggerFactory.getLogger(InvoiceService.class);
     @Autowired
     private InvRepository invoiceRepository;
-    @Autowired
-    private InvoiceHtmlGenerator invoiceHtmlGenerator;
+//    @Autowired
+//    private InvoiceHtmlGenerator invoiceHtmlGenerator;
 
 
     private final List<String> pdfFileNames = new CopyOnWriteArrayList<>();
@@ -68,90 +64,52 @@ public class InvoiceService {
             new LinkedBlockingQueue<>() // queue for holding tasks before they are executed
     );
 
+//    private String createPdf(String tempDir) throws IOException {
+//        String fileName = tempDir + File.separator + "simple_invoice.pdf";
+//        PdfWriter writer = new PdfWriter(fileName);
+//        PdfDocument pdfDoc = new PdfDocument(writer);
+//        Document doc = new Document(pdfDoc);
+//        doc.add(new Paragraph("Hello World"));
+//        doc.close();
+//        return fileName;
+//    }
 
     private String createPdf(Invoice invoice, String tempDir) throws IOException {
-//        Document document = new Document();
-        String fileName = tempDir + File.separator + "invoice_" + invoice.getNoInvoice() + ".pdf";
+        String fileName = tempDir + File.separator + "TC_" + invoice.getNoCust() + ".pdf";
+
         File imgFile = ResourceUtils.getFile("classpath:templates/template_header_footer.jpg");
         String imgPath = imgFile.getAbsolutePath();
-        int count = 1;
-        PdfWriter writer = new PdfWriter(tempDir + File.separator + "invoice_" + invoice.getNoInvoice() + "_" + count + ".pdf");
 
+        int count = 1;
+        PdfWriter writer = new PdfWriter(fileName);
         PdfDocument pdfDoc = new PdfDocument(writer);
         PageSize pageSize = PageSize.A4;
+
         Document doc = new Document(pdfDoc, pageSize);
-        doc.setMargins(80,35,0,35);
 
-
+        doc.setMargins(80, 35, 50, 35);
         PdfCanvas canvas = new PdfCanvas(pdfDoc.addNewPage());
-        canvas.addImageFittedIntoRectangle(ImageDataFactory.create(imgPath),pageSize,false);
+        ImageData imageData = ImageDataFactory.create(imgPath);
+        canvas.addImageFittedIntoRectangle(imageData, pageSize, false);
 
-        Table table1 = new Table(new float[]{15,20,20});
-        table1.setWidth(565);
-        Cell cell = new Cell(1,1).add(new Paragraph("TESTING"));
+        Table table1 = new Table(new float[]{15, 20, 20});
+        table1.setWidth(UnitValue.createPercentValue(100));
+
+        Cell cell = new Cell(1, 1).add(new Paragraph("TRADE CONFIRMATION"));
         cell.setHorizontalAlignment(HorizontalAlignment.CENTER);
         cell.setTextAlignment(TextAlignment.CENTER);
         table1.addCell(cell);
-
         doc.add(table1);
 
         doc.close();
-
-
-        /*
-        int count = 1;
-
-    private String createPdf(Invoice invoice, String tempDir, Integer count) throws IOException, DocumentException {
-        String fileName = tempDir + File.separator + "invoice_" + invoice.getNoInvoice() + ".pdf";
-        // int count = 1;
-
-        File file = new File(fileName);
-        while (file.exists()) {
-            fileName = tempDir + File.separator + "invoice_" + invoice.getNoInvoice() + "_" + count + ".pdf";
-            file = new File(fileName);
-            // count++;
-        }
-
-
-
-        PdfWriter.getInstance(document, new FileOutputStream(fileName));
-
-        document.open();
-        //  garis horizontal
-        LineSeparator lineSeparator = new LineSeparator();
-        lineSeparator.setLineWidth(1f); //  ketebalan garis
-        // Font
-        Font regular = new Font(Font.FontFamily.HELVETICA, 12);
-        Font semibold = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
-        Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
-        //title
-        Paragraph title = new Paragraph("PT. BCA SEKURITAS", titleFont);
-        title.setAlignment(Element.ALIGN_LEFT);
-        document.add(title);
-        document.add(new Paragraph("Menara BCA - Grand Indonesia 41st Floow Suite 4101", semibold));
-        document.add(new Paragraph("JL. MH. Thamrin No 1 Jakarta 10310", semibold));
-        document.add(new Paragraph("Phone : 2358 7222 (Hunting), 2358 7277 (Sales); Fax : 2358 7250", semibold));
-        document.add(new Paragraph("NPWP : 01.357.392.8-054.000", semibold));
-        document.add(new Chunk(lineSeparator));
-
-        document.add(new Paragraph("Invoice ID: " + invoice.getNoInvoice()));
-        document.add(new Paragraph("Client Name: " + invoice.getNoCust()));
-        document.add(new Paragraph("Invoice Date: " + invoice.getDate()));
-        document.close();
-
         System.out.println("PDF created: " + fileName); // Log the creation of the PDF
-         */
-
         // Convert HTML to PDF
-        String htmlContent = invoiceHtmlGenerator.generateHtml(invoice);
-        System.out.println("HTML Content: " + htmlContent); // Debug HTML content
-        HtmlConverter.convertToPdf(htmlContent, new FileOutputStream(fileName));
-        System.out.println("PDF created: " + fileName); // Log the creation of the PDF
-
-
+//        String htmlContent = invoiceHtmlGenerator.generateHtml(invoice);
+//        System.out.println("HTML Content: " + htmlContent); // Debug HTML content
+//        HtmlConverter.convertToPdf(htmlContent, new FileOutputStream(fileName));
+//        System.out.println("PDF created: " + fileName); // Log the creation of the PDF
+//
         return fileName;
-
-
     }
 
     private void createZip(String tempDir) {
@@ -185,8 +143,7 @@ public class InvoiceService {
     }
 
     public void generateInvoicesPdf() {
-//        List<Invoice> invoices = invoiceRepository.findAll();
-        // List<Invoice> invoices = invoiceRepository.findFirst5ByOrderByNoInvAsc();
+
         List<Invoice> invoices = invoiceRepository.findDistinctNoCustOrderByDtInvDesc();
 
         for (Invoice invoice : invoices) {
@@ -195,26 +152,26 @@ public class InvoiceService {
         // System.exit(0);
 
         String tempDir = System.getProperty("java.io.tmpdir"); // Direktori sementara untuk menyimpan file PDF
-        for (Invoice invoice : invoices) {
-            try {
-                String fileName = createPdf(invoice, tempDir);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        /*
+//        for (Invoice invoice : invoices) {
+//            try {
+//                String fileName = createPdf(invoice, tempDir);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+
         CountDownLatch latch = new CountDownLatch(invoices.size());
 
-        int count = 1;
+//        int count = 1;
         for (Invoice invoice : invoices) {
-            int finalCount = count;
+//            int finalCount = count;
             executorService.submit(() -> {
                 System.out.println("ON WORKING Thread Name: " + Thread.currentThread().getName());
                 try {
-                    String fileName = createPdf(invoice, tempDir, finalCount);
+                    String fileName = createPdf(invoice, tempDir);
                     pdfFileNames.add(fileName);
 
-                } catch ( Exception e) {
+                } catch (Exception e) {
                     System.err.println("Error creating PDF for invoice " + invoice.getNoInvoice() + ": " + e.getMessage());
                 } finally {
                     latch.countDown(); // Decrement the latch count
@@ -237,11 +194,10 @@ public class InvoiceService {
             executorService.shutdownNow();
             Thread.currentThread().interrupt();
         }
-//        createZip(tempDir);
+        createZip(tempDir);
 
-         */
+
     }
-
 
 
 }

@@ -12,6 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 @RestController
@@ -28,16 +30,16 @@ public class InvoiceController {
 
     @GetMapping("/generate-and-download")
 
-    public String generateAndDownloadInvoices() throws IOException {
-
-        // Panggil service untuk menghasilkan PDF dan ZIP
-        invoiceService.generateInvoicesPdf();
-
-        return "OK";
-        /*
+//    public String generateAndDownloadInvoices() throws IOException {
+//
+//        // Panggil service untuk menghasilkan PDF dan ZIP
+//        invoiceService.generateInvoicesPdf();
+//
+//        return "OK";
+//
 
         // Path ke file ZIP yang dihasilkan
-        String zipFilePath = System.getProperty("java.io.tmpdir") + File.separator + "invoices.zip";
+//        String zipFilePath = System.getProperty("java.io.tmpdir") + File.separator + "invoices.zip";
 
     public ResponseEntity<InputStreamResource> generateAndDownloadInvoices() throws IOException {
         invoiceService.generateInvoicesPdf();
@@ -63,7 +65,7 @@ public class InvoiceController {
                     .body(null);
         }
 
-         */
+
     }
 
 
