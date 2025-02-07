@@ -101,6 +101,8 @@ public class InvoiceService {
         doc.add(table2);
         doc.close();
         System.out.println("PDF created: " + fileName); // Log the creation of the PDF
+
+
         // Convert HTML to PDF
 //        String htmlContent = invoiceHtmlGenerator.generateHtml(invoice);
 //        System.out.println("HTML Content: " + htmlContent); // Debug HTML content
