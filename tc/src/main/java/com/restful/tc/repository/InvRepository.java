@@ -4,7 +4,10 @@ import com.restful.tc.model.Invoice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.util.List;
+
+import java.util.Date;
 
 
 public interface InvRepository extends JpaRepository<Invoice, Long> {
@@ -45,4 +48,7 @@ public interface InvRepository extends JpaRepository<Invoice, Long> {
             "    HAVING COUNT(*) = 1\n" +
             ");", nativeQuery = true)
     List<Invoice> findDistinctNoCustByToday();
+
+    @Query(value = "SELECT * FROM invoice WHERE no_cust = :noCust AND CAST(dt_inv AS DATE) = :dtInv ORDER BY no_inv ASC", nativeQuery = true)
+    List<Invoice> findInvoiceDetail(@Param("noCust") String noCust, @Param("dtInv") String dtInv);
 }
