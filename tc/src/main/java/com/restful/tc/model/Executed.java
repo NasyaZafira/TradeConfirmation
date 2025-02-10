@@ -2,6 +2,8 @@ package com.restful.tc.model;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "executed")
 public class Executed {
@@ -18,10 +20,10 @@ public class Executed {
     private String noShare;
 
     @Column(name = "vol_done")
-    private Integer volDone;
+    private BigDecimal volDone;
 
     @Column(name = "prc_done")
-    private Integer prcDone;
+    private BigDecimal prcDone;
 
     public Executed() {
 
@@ -51,19 +53,19 @@ public class Executed {
         this.noShare = noShare;
     }
 
-    public Integer getVolDone() {
+    public BigDecimal getVolDone() {
         return volDone;
     }
 
-    public void setVolDone(Integer volDone) {
+    public void setVolDone(BigDecimal volDone) {
         this.volDone = volDone;
     }
 
-    public Integer getPrcDone() {
+    public BigDecimal getPrcDone() {
         return prcDone;
     }
 
-    public void setPrcDone(Integer prcDone) {
+    public void setPrcDone(BigDecimal prcDone) {
         this.prcDone = prcDone;
     }
 

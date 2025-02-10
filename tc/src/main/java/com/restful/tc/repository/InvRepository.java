@@ -19,6 +19,8 @@ public interface InvRepository extends JpaRepository<Invoice, Long> {
             "        dt_inv,\n" +
             "        no_inv,\n" +
             "        no_cust,\n" +
+            "        dt_due,\n" +
+            "        comm,\n" +
             "        ROW_NUMBER() OVER (PARTITION BY no_cust ORDER BY no_inv DESC) AS rn\n" +
             "    FROM \n" +
             "        Invoice\n" +
@@ -28,7 +30,9 @@ public interface InvRepository extends JpaRepository<Invoice, Long> {
             "SELECT TOP 10 \n" +
             "    dt_inv,\n" +
             "    no_inv,\n" +
-            "    no_cust\n" +
+            "    no_cust,\n" +
+            "    dt_due,\n" +
+            "    comm\n" +
             "FROM \n" +
             "    FilteredData\n" +
             "WHERE \n" +

@@ -6,6 +6,7 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.restful.tc.model.Invoice;
+import com.restful.tc.model.Subacc;
 import com.restful.tc.repository.InvRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,8 +69,8 @@ public class InvoiceService {
             com.itextpdf.text.Document doc = new Document(pageSize);
             PdfWriter.getInstance(doc, new FileOutputStream(fileName));
 
-            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA, 16);
-            Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
+            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA, 15);
+            Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
             Font normalBoldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
             Font nineFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
 
@@ -78,8 +79,8 @@ public class InvoiceService {
             //TABLE CORPORATE
             PdfPTable table = new PdfPTable(2);
             table.setWidthPercentage(100); // Full width
-            table.setSpacingBefore(10f);
-            table.setSpacingAfter(10f);
+            table.setSpacingBefore(5f);
+            table.setSpacingAfter(5f);
             float[] columnWidth = {6f, 4f};
             table.setWidths(columnWidth);
 
@@ -106,7 +107,6 @@ public class InvoiceService {
             cell2.setVerticalAlignment(Element.ALIGN_MIDDLE); // Mengatur posisi gambar di tengah vertikal
             cell2.setBorder(PdfPCell.NO_BORDER);
             cell2.setBorderWidthBottom(1f);
-            cell2.setPaddingBottom(10f);
             table.addCell(cell2);
 
             doc.add(table);
@@ -119,8 +119,8 @@ public class InvoiceService {
             // TABLE 1 ===============================================================================
             PdfPTable table1 = new PdfPTable(4); // 5 columns
             table1.setWidthPercentage(100); // Full width
-            table1.setSpacingBefore(10f);
-            table1.setSpacingAfter(10f);
+            table1.setSpacingBefore(5f);
+            table1.setSpacingAfter(5f);
             float[] columnWidths = {3f, 7f, 4f, 6f};
             table1.setWidths(columnWidths);
 
@@ -437,6 +437,133 @@ public class InvoiceService {
 
             doc.add(table3);
 
+            //TABLE 4 ==============================================================================================================================
+            PdfPTable tremit = new PdfPTable(1);
+            tremit.setWidthPercentage(100); // Full width
+            float[] columninWidth = {10f};
+            tremit.setWidths(columninWidth);
+
+            Paragraph remitParagraph = new Paragraph();
+            remitParagraph.setFont(nineFont);
+            remitParagraph.add("Please remit the due amount to effectively on (in good fund) from \n"); //tc individu
+            remitParagraph.add("23 January 2025\n"); //hari transaksi + 1
+
+            PdfPCell remit = new PdfPCell(remitParagraph);
+            remit.setBorder(PdfPCell.NO_BORDER);
+            tremit.addCell(remit);
+
+            doc.add(tremit);
+
+            //TABLE 5 ====================================================================================================================================
+            PdfPTable bankAccount = new PdfPTable(2);
+            bankAccount.setWidthPercentage(100); // Full width
+            float[] columnbankWidth = {4f,18f};
+            bankAccount.setWidths(columnbankWidth);
+
+            //column1
+            Paragraph bankParagraph = new Paragraph();
+            bankParagraph.setFont(nineFont);
+            bankParagraph.add("Bank\n");
+            bankParagraph.add("Account Number\n");
+            bankParagraph.add("Name\n");
+
+            PdfPCell bankAcc = new PdfPCell(bankParagraph);
+            bankAcc.setBorder(PdfPCell.NO_BORDER);
+            bankAcc.setHorizontalAlignment(PdfPCell.ALIGN_LEFT);
+            bankAccount.addCell(bankAcc);
+
+            //column2
+            Paragraph custParagraph = new Paragraph();
+            custParagraph.setFont(nineFont);
+            custParagraph.add("BCA\n");
+            custParagraph.add("4991905108\n");
+            custParagraph.add("JEFRI YUNUS\n");
+
+            PdfPCell custData = new PdfPCell(custParagraph);
+            custData.setBorder(PdfPCell.NO_BORDER);
+            custData.setPaddingBottom(5f);
+            custData.setHorizontalAlignment(PdfPCell.ALIGN_LEFT);
+            bankAccount.addCell(custData);
+
+            doc.add(bankAccount);
+
+            //TABLE 6 =============================================================================================
+            PdfPTable announce = new PdfPTable(1);
+            announce.setWidthPercentage(100); // Full width
+            float[] columnanWidth = {10f};
+            announce.setWidths(columnanWidth);
+
+            Paragraph announParagraph = new Paragraph();
+            announParagraph.setFont(nineFont);
+            announParagraph.add("This transaction is taken as confirmed, if no discrepancies are reported within 24 hours\n");
+            announParagraph.add("Should there be any discrepancies, kindly contact our customer sevices or your sales officer prior\n");
+            announParagraph.add("to market opens on the next business day\n");
+
+            PdfPCell announCell = new PdfPCell(announParagraph);
+            announCell.setBorder(PdfPCell.NO_BORDER);
+            announCell.setPaddingBottom(10f);
+            announCell.setHorizontalAlignment(PdfPCell.ALIGN_LEFT);
+            announce.addCell(announCell);
+
+            doc.add(announce);
+
+            //TABLE 7 ==================================================================================================
+            PdfPTable pengTable1 = new PdfPTable(1);
+            pengTable1.setWidthPercentage(100);// Full width
+            float[] columnanWidth1 = {10f};
+            pengTable1.setWidths(columnanWidth1);
+
+            Paragraph pengParagraph1 = new Paragraph();
+            pengParagraph1.setFont(nineFont);
+            pengParagraph1.setLeading(20f);
+            pengParagraph1.add("Trade Confirmation ini berlaku sebagai Dokumen tertentu yang kedudukannya dipersamakan dengan Faktur Pajak sesuai dengan Peraturan Direktur Jendral Pajak Nomor PER-27/PJ/2011 jo, PER-67/PJ/2010 jo, PER-10/PJ/2010\n");
+//            pengParagraph1.add("Peraturan Direktur Jendral Pajak Nomor PER-27/PJ/2011 jo, PER-67/PJ/2010 jo, PER-10/PJ/2010\n");
+
+            PdfPCell pengCell1 = new PdfPCell(pengParagraph1);
+            pengCell1.setPaddingBottom(10f);
+            pengCell1.setHorizontalAlignment(PdfPCell.ALIGN_CENTER);
+            pengCell1.setPadding(3f);
+            pengTable1.addCell(pengCell1);
+
+            doc.add(pengTable1);
+
+            //TABLE 8 ===========================================================================================================================================
+            PdfPTable pengTable2 = new PdfPTable(1);
+            pengTable2.setWidthPercentage(100);// Full width
+            float[] columnanWidth2 = {10f};
+            pengTable2.setWidths(columnanWidth2);
+
+            Paragraph pengParagraph2 = new Paragraph();
+            pengParagraph2.setFont(nineFont);
+            pengParagraph2.setLeading(20f);
+            pengParagraph2.add("Nasabah dihimbau untuk memeriksa catatan saldo dan mutasi Efek dan/atau dana pada Sub Rekening Efek dan dana pada RDN melalui Akses KSEI (https://akses.ksei.co.id)\n");
+//
+            PdfPCell pengCell2 = new PdfPCell(pengParagraph2);
+            pengCell2.setPaddingBottom(10f);
+            pengCell2.setHorizontalAlignment(PdfPCell.ALIGN_CENTER);
+            pengCell2.setPadding(3f);
+            pengTable2.addCell(pengCell2);
+
+            doc.add(pengTable2);
+
+            //TABLE 9 ======================================================================================================================================================
+            PdfPTable noteTable = new PdfPTable(1);
+            noteTable.setWidthPercentage(100);// Full width
+            float[] columnoteWidth = {10f};
+            noteTable.setWidths(columnoteWidth);
+
+            Paragraph noteParagraph = new Paragraph();
+            noteParagraph.setFont(nineFont);
+            noteParagraph.add("NOTE : Board NG, RG, TN (Bursa Efek); Board UH (Di luar Bursa Efek); V= Vs Payment; F = Free of Payment\n");
+//
+            PdfPCell noteCell = new PdfPCell(noteParagraph);
+            noteCell.setPaddingBottom(1f);
+            noteCell.setBorder(PdfPCell.NO_BORDER);
+            noteCell.setHorizontalAlignment(PdfPCell.ALIGN_LEFT);
+            noteCell.setPadding(3f);
+            noteTable.addCell(noteCell);
+
+            doc.add(noteTable);
             // GENERATE PDF ==================================================================================================================================
             doc.close();
 
