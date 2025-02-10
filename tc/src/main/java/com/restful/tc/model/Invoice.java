@@ -2,6 +2,7 @@ package com.restful.tc.model;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -18,8 +19,20 @@ public class Invoice {
     @Column(name = "dt_inv")
     private LocalDate dt_inv;
 
+//
+//    @Column(name = "dt_due")
+//    private LocalDate dt_due;
+//
+//
+//    @Column(name = "comm")
+//    private BigDecimal comm;
+//
+
     public Invoice() {
     }
+//    public BigDecimal getComm() {
+//        return comm;
+//    }
 
     public String getNoInvoice() {
         return noInv;
@@ -33,12 +46,17 @@ public class Invoice {
         return dt_inv;
     }
 
-    public Invoice(LocalDate dt_inv, String no_inv, String no_cust) {
-        this.dt_inv = dt_inv;
-
-        this.noInv = no_inv;
-        this.no_cust = no_cust;
-    }
+//    public LocalDate getDt_due() {
+//        return dt_due;
+//    }
+//
+//    public void setComm(BigDecimal comm) {
+//        this.comm = comm;
+//    }
+//
+//    public void setDt_due(LocalDate dt_due) {
+//        this.dt_due = dt_due;
+//    }
 
 
     public void setDt_inv(LocalDate dt_inv) {
@@ -50,6 +68,12 @@ public class Invoice {
     }
 
     public void setNo_cust(String no_cust) {
+        this.no_cust = no_cust;
+    }
+
+    public Invoice(LocalDate dt_inv, String no_inv, String no_cust) {
+        this.dt_inv = dt_inv;
+        this.noInv = no_inv;
         this.no_cust = no_cust;
     }
 }
