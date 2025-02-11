@@ -25,7 +25,8 @@ public interface InvRepository extends JpaRepository<Invoice, Long> {
             "    FROM \n" +
             "        Invoice\n" +
             "    WHERE \n" +
-            "        dt_inv = '2025-01-31'\n" +
+            "        dt_inv = '2025-01-22'\n" +
+            "           AND no_cust  = '98BO'" +
             ")\n" +
             "SELECT TOP 10 \n" +
             "    dt_inv,\n" +

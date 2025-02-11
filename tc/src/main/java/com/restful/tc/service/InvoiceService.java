@@ -69,7 +69,7 @@ public class InvoiceService {
 //    }
 
 
-    String createPdf(Invoice invoice, Subacc subacc, Executed executed, String tempDir) throws IOException {
+    String createPdf(Invoice invoice, Subacc subacc, List<Executed> executed, String tempDir) throws IOException {
         System.out.println("ceknasya getNoCust: " + invoice.getNoCust());
         String fileName = tempDir + File.separator + "TC_" + invoice.getNoCust() + ".pdf";
         String imgFile = "classpath:templates/logo_bcas.png";
@@ -133,14 +133,35 @@ public class InvoiceService {
             table1.setWidthPercentage(100); // Full width
             table1.setSpacingBefore(5f);
             table1.setSpacingAfter(5f);
-            float[] columnWidths = {3f, 7f, 4f, 6f};
+            float[] columnWidths = {2f, 8f, 4f, 6f};
             table1.setWidths(columnWidths);
 
+            //PARSING DATA
+            String docNo = invoice.getDate() + invoice.getNoCust();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, dd-MMM-yyyy");
+
             // String[] nnti bisa diganti pakai hasil get dari databasenya aja
-            String[] tab1col1 = {"To", "Address", "", "", "Phone/Fax", "Email", "Bank"};
-            String[] tab1col2 = {invoice.getNoCust(), "jl siantan", "rt rw", "jakbar", "0/", "jeff@gmail", "BCA 12345"};
+            String[] tab1col1 = {"To", "Address", "", "","", "Phone/Fax", "Email", "Bank"};
+            String[] tab1col2 = {
+                    "(" + invoice.getNoCust() + ") " + subacc.getName() ,
+                    subacc.getAdd1(),
+                    subacc.getAdd2(),
+                    subacc.getCityJoin().getDesc(),
+                    subacc.getZip() + " " + subacc.getCountryJoin().getDesc(),
+                    subacc.getPhone1(),
+                    subacc.getEmail(),
+                    subacc.getBank() + " " + subacc.getAccount()};
             String[] tab1col3 = {"Document No", "Transaction Date", "Settlement Date", "Currency", "Office", "Sales Person", "SID", "CBest Account", "Commission"};
-            String[] tab1col4 = {"25012298BO", "Wednesday, 22-Jan-2025", "Friday, 24-Jan-2025", "IDR", "04", "online", "IDD1508ZD554162", "SQ00198BO00146", "0.1815 %"};
+            String[] tab1col4 = {
+                    docNo.replace("-",""),
+                    invoice.getDate().format(formatter),
+                    invoice.getDt_due().format(formatter),
+                    "IDR Minimum Fee : 0",
+                    subacc.getNo_sub(),
+                    subacc.getStaff().getNameStaff() ,
+                    subacc.getInvestor_no(),
+                    "SQ001" + subacc.getNo_ksei().substring(0, 4) + "001" + subacc.getNo_ksei().substring(4),
+                    subacc.getCommission() + "%  (Excluding Sales Tax)"};
 
             for (int i = 0; i <= tab1col4.length; i++) {
                 PdfPCell cell = new PdfPCell();
@@ -199,12 +220,12 @@ public class InvoiceService {
             // string[] nanti diganti aja pake get data dari DB
             String[] tab2row1 = {"REF# board", "Securities", "Lots", "Shares", "Price", "Amount Buy", "Amount Sell"};
 
-            String[] refBoard = {executed.getNoInv() + "" + executed.getBoard(),  ""};
-            String[] securities = {executed.getNoShare(), ""};
-            BigDecimal[] lots = {executed.getVolDone().divide(BigDecimal.valueOf(100))};
-            BigDecimal[] shares = {executed.getVolDone()};
-            BigDecimal[] price = {executed.getPrcDone()};
-            String[] isBuy = {executed.getBors()};
+            String[] refBoard = {executed.get(0).getNoInv() + "" + executed.get(0).getBoard(),  ""};
+            String[] securities = {executed.get(0).getNoShare(), ""};
+            BigDecimal[] lots = {executed.get(0).getVolDone()};
+            BigDecimal[] shares = {executed.get(0).getVolDone()};
+            BigDecimal[] price = {executed.get(0).getPrcDone()};
+            String[] isBuy = {executed.get(0).getBors()};
             BigDecimal[] amountBuy = {BigDecimal.ZERO};
             BigDecimal[] amountSell = {BigDecimal.ZERO};
 
@@ -254,11 +275,20 @@ public class InvoiceService {
                 table2.addCell(cell);
 
                 // lots
-                if (lots[i] != null) {
+//                if (lots[i] != null) {
+//                    str = lots[i].toString();
+//                } else {
+//                    str = "0";
+//                }
+
+                if (i < lots.length) {
                     str = lots[i].toString();
                 } else {
                     str = "0";
                 }
+                System.err.println("LOTS.length: " + lots.length);
+                System.err.println("LOTS REF: " + refBoard.length);
+
                 cell = new PdfPCell(new Phrase(str, normalFont));
                 cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
                 cell.setBorder(PdfPCell.NO_BORDER);
@@ -269,11 +299,14 @@ public class InvoiceService {
                 table2.addCell(cell);
 
                 // shares
-                if (lots[i] != null) {
+                if (i < shares.length) {
                     str = shares[i].toString();
                 } else {
                     str = "0";
                 }
+                System.err.println("SHARE.length: " + shares.length);
+//                System.err.println("SHARE value: " + shares[i]);
+
                 cell = new PdfPCell(new Phrase(str, normalFont));
                 cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
                 cell.setBorder(PdfPCell.NO_BORDER);
@@ -284,11 +317,14 @@ public class InvoiceService {
                 table2.addCell(cell);
 
                 // price
-                if (price[i] != null) {
+                if (i < price.length) {
                     str = price[i].toString();
                 } else {
                     str = "0";
                 }
+                System.err.println("PRICE.length: " + shares.length);
+//                System.err.println("PRICE.value: " + shares[i]);
+
                 cell = new PdfPCell(new Phrase(str, normalFont));
                 cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
                 cell.setBorder(PdfPCell.NO_BORDER);
@@ -299,7 +335,7 @@ public class InvoiceService {
                 table2.addCell(cell);
 
                 // amount buy
-                if (shares[i] != null && price[i] != null && isBuy[i].equals("B")) {
+                if (i < shares.length && shares[i] != null && price[i] != null && isBuy[i].equals("B")) {
                     BigDecimal amount = shares[i].multiply(price[i]);
                     str = amount.toString();
                     amountBuy[i] = amount;
@@ -317,7 +353,7 @@ public class InvoiceService {
                 table2.addCell(cell);
 
                 // amount sell
-                if (shares[i] != null && price[i] != null && isBuy[i].equals("S")) {
+                if (i < shares.length && shares[i] != null && price[i] != null && isBuy[i].equals("S")) {
                     BigDecimal amount = shares[i].multiply(price[i]);
                     str = amount.toString();
                     amountSell[i] = amount;
@@ -430,6 +466,7 @@ public class InvoiceService {
                 }
                 cell = new PdfPCell(new Phrase(str, normalFont));
                 cell.setBorder(PdfPCell.NO_BORDER);
+                cell.setVerticalAlignment(Element.ALIGN_RIGHT);
                 if (i == 5) {
                     cell.setPaddingBottom(5);
                     cell.setBorderWidthBottom(1f);
@@ -451,6 +488,7 @@ public class InvoiceService {
                 }
                 cell = new PdfPCell(new Phrase(str, normalFont));
                 cell.setBorder(PdfPCell.NO_BORDER);
+                cell.setVerticalAlignment(Element.ALIGN_RIGHT);
                 if (i == 5) {
                     cell.setPaddingBottom(5);
                     cell.setBorderWidthBottom(1f);
@@ -704,7 +742,7 @@ public class InvoiceService {
                         throw new RuntimeException("Subacc not found for noCust: " + invoice.getNoCust());
                     }
                     // Ambil data Executed berdasarkan noCust (atau logika lain yang sesuai)
-                    Executed executed = executedRepository.findByNoCust(invoice.getNoCust());
+                    List<Executed> executed = executedRepository.findByNoCust(invoice.getNoCust());
                     if (executed == null) {
                         throw new RuntimeException("Executed not found for noCust: " + invoice.getNoCust());
                     }

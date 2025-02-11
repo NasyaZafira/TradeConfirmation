@@ -22,14 +22,14 @@ public class Subacc {
     @Column(name = "add2")
     private String add2;
 
-    @Column(name = "city")
-    private String city;
+//    @Column(name = "city")
+//    private String city;
 
     @Column(name = "zip")
     private String zip;
 
-    @Column(name = "country")
-    private String country;
+//    @Column(name = "country")
+//    private String country;
 
     @Column(name = "phone1")
     private String phone1;
@@ -43,8 +43,8 @@ public class Subacc {
     @Column(name = "account")
     private String account;
 
-    @Column(name = "no_staff")
-    private String no_staff;
+//    @Column(name = "no_staff")
+//    private String no_staff;
 
     @Column(name = "investor_no")
     private String investor_no;
@@ -52,14 +52,64 @@ public class Subacc {
     @Column(name = "no_ksei")
     private String no_ksei;
 
-    @Column(name = "poem_com")
-    private BigDecimal poem_com;
+    @Column(name = "commission")
+    private BigDecimal commission;
 
     @Column(name = "no_sub")
     private String no_sub;
 
+    @Column(name = "fax")
+    private String fax;
+
+    @ManyToOne
+    @JoinColumn(name = "no_staff", referencedColumnName = "no_staff")
+    private Staff staff;
+
+    @ManyToOne
+    @JoinColumn(name = "country", referencedColumnName = "country_no")
+    private Country countryJoin;
+
+
+    @ManyToOne
+    @JoinColumn(name = "city", referencedColumnName = "city_no")
+    private City cityJoin;
+
+
     public Subacc(){
 
+    }
+
+
+    public City getCityJoin() {
+        return cityJoin;
+    }
+
+    public void setCityJoin(City cityJoin) {
+        this.cityJoin = cityJoin;
+    }
+
+    public Country getCountryJoin() {
+        return countryJoin;
+    }
+
+    public void setCountryJoin(Country countryJoin) {
+        this.countryJoin = countryJoin;
+    }
+
+    public Staff getStaff() {
+        return staff;
+    }
+
+    public void setStaff(Staff staff) {
+        this.staff = staff;
+    }
+
+    public String getFax() {
+        return fax;
+    }
+
+    public void setFax(String fax) {
+        this.fax = fax;
     }
 
     public String getNoCust() {
@@ -93,14 +143,14 @@ public class Subacc {
     public void setAdd2(String add2) {
         this.add2 = add2;
     }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
+//
+//    public String getCity() {
+//        return city;
+//    }
+//
+//    public void setCity(String city) {
+//        this.city = city;
+//    }
 
     public String getZip() {
         return zip;
@@ -110,13 +160,13 @@ public class Subacc {
         this.zip = zip;
     }
 
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
+//    public String getCountry() {
+//        return country;
+//    }
+//
+//    public void setCountry(String country) {
+//        this.country = country;
+//    }
 
     public String getPhone1() {
         return phone1;
@@ -150,13 +200,13 @@ public class Subacc {
         this.account = account;
     }
 
-    public String getNo_staff() {
-        return no_staff;
-    }
-
-    public void setNo_staff(String no_staff) {
-        this.no_staff = no_staff;
-    }
+//    public String getNo_staff() {
+//        return no_staff;
+//    }
+//
+//    public void setNo_staff(String no_staff) {
+//        this.no_staff = no_staff;
+//    }
 
     public String getInvestor_no() {
         return investor_no;
@@ -174,12 +224,12 @@ public class Subacc {
         this.no_ksei = no_ksei;
     }
 
-    public BigDecimal getPoem_com() {
-        return poem_com;
+    public BigDecimal getCommission() {
+        return commission;
     }
 
-    public void setPoem_com(BigDecimal poem_com) {
-        this.poem_com = poem_com;
+    public void setCommission(BigDecimal commission) {
+        this.commission = commission;
     }
 
     public String getNo_sub() {
