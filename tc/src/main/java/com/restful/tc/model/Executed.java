@@ -10,6 +10,9 @@ public class Executed {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "no_cust")
+    private String noCust;
+
     @Column(name = "no_done")
     private String noDone;
 
@@ -25,8 +28,36 @@ public class Executed {
     @Column(name = "prc_done")
     private BigDecimal prcDone;
 
+    @Column(name = "no_inv")
+    private String noInv;
+
+    @Column(name = "bors")
+    private String bors;
+
     public Executed() {
 
+    }
+    public String getNoCust() {
+        return noCust;
+    }
+
+    public void setNoCust(String noCust) {
+        this.noCust = noCust;
+    }
+    public String getNoInv() {
+        return noInv;
+    }
+
+    public void setNoInv(String noInv) {
+        this.noInv = noInv;
+    }
+
+    public String getBors() {
+        return bors;
+    }
+
+    public void setBors(String bors) {
+        this.bors = bors;
     }
 
     public String getNoDone() {

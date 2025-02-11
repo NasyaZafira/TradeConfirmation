@@ -5,9 +5,12 @@ import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.restful.tc.model.Executed;
 import com.restful.tc.model.Invoice;
 import com.restful.tc.model.Subacc;
+import com.restful.tc.repository.ExecutedRepository;
 import com.restful.tc.repository.InvRepository;
+import com.restful.tc.repository.SubaccRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.List;
@@ -29,6 +33,11 @@ public class InvoiceService {
     private static final Logger log = LoggerFactory.getLogger(InvoiceService.class);
     @Autowired
     private InvRepository invoiceRepository;
+    @Autowired
+    private ExecutedRepository executedRepository;
+    @Autowired
+    private SubaccRepository subaccRepository;
+
 //    @Autowired
 //    private InvoiceHtmlGenerator invoiceHtmlGenerator;
 
@@ -57,7 +66,7 @@ public class InvoiceService {
 //    }
 
 
-    String createPdf(Invoice invoice, String tempDir) throws IOException {
+    String createPdf(Invoice invoice, Subacc subacc, Executed executed, String tempDir) throws IOException {
         System.out.println("ceknasya getNoCust: " + invoice.getNoCust());
         String fileName = tempDir + File.separator + "TC_" + invoice.getNoCust() + ".pdf";
         String imgFile = "classpath:templates/logo_bcas.png";
@@ -187,16 +196,17 @@ public class InvoiceService {
             // string[] nanti diganti aja pake get data dari DB
             String[] tab2row1 = {"REF# board", "Securities", "Lots", "Shares", "Price", "Amount Buy", "Amount Sell"};
 
-            String[] refBoard = {"403211 RG", "403211 RG", "403212 RG", "406840 RG", ""};
-            String[] securities = {"BRPT-Barito Pacific Tbk.", "BRPT-Barito Pacific Tbk.", "SGER-Sumber Global Energy T", "", ""};
-            Integer[] lots = {70, 15, 29, 380, 99};
-            Integer[] price = {920, 925, 354, 124, 358};
-            String[] isBuy = {"Y", "Y", "Y", "N", "N"};
-            Integer[] amountBuy = {0, 0, 0, 0, 0};
-            Integer[] amountSell = {0, 0, 0, 0, 0};
+            String[] refBoard = {executed.getNoInv() + "" + executed.getBoard(),  ""};
+            String[] securities = {executed.getNoShare(), ""};
+            BigDecimal[] lots = {executed.getVolDone().divide(BigDecimal.valueOf(100))};
+            BigDecimal[] shares = {executed.getVolDone()};
+            BigDecimal[] price = {executed.getPrcDone()};
+            String[] isBuy = {executed.getBors()};
+            BigDecimal[] amountBuy = {BigDecimal.ZERO};
+            BigDecimal[] amountSell = {BigDecimal.ZERO};
 
-            Integer grossAmountBuy = 0;
-            Integer grossAmountSell = 0;
+            BigDecimal grossAmountBuy = BigDecimal.ZERO;;
+            BigDecimal grossAmountSell = BigDecimal.ZERO;;
 
             PdfPCell cell = new PdfPCell();
             String str = "";
@@ -257,7 +267,7 @@ public class InvoiceService {
 
                 // shares
                 if (lots[i] != null) {
-                    str = adjustNumberFormat(lots[i] * 100, 0);
+                    str = shares[i].toString();
                 } else {
                     str = "0";
                 }
@@ -272,7 +282,7 @@ public class InvoiceService {
 
                 // price
                 if (price[i] != null) {
-                    str = adjustNumberFormat(price[i], 4);
+                    str = price[i].toString();
                 } else {
                     str = "0";
                 }
@@ -286,11 +296,11 @@ public class InvoiceService {
                 table2.addCell(cell);
 
                 // amount buy
-                if (lots[i] != null && price[i] != null && isBuy[i] == "Y") {
-                    Integer amount = lots[i] * 100 * price[i];
-                    str = adjustNumberFormat(amount, 0);
+                if (shares[i] != null && price[i] != null && isBuy[i].equals("B")) {
+                    BigDecimal amount = shares[i].multiply(price[i]);
+                    str = amount.toString();
                     amountBuy[i] = amount;
-                    grossAmountBuy += amount;
+                    grossAmountBuy = grossAmountBuy.add(amount);
                 } else {
                     str = "0";
                 }
@@ -304,11 +314,11 @@ public class InvoiceService {
                 table2.addCell(cell);
 
                 // amount sell
-                if (lots[i] != null && price[i] != null && isBuy[i] == "N") {
-                    Integer amount = lots[i] * 100 * price[i];
-                    str = adjustNumberFormat(amount, 0);
+                if (shares[i] != null && price[i] != null && isBuy[i].equals("S")) {
+                    BigDecimal amount = shares[i].multiply(price[i]);
+                    str = amount.toString();
                     amountSell[i] = amount;
-                    grossAmountSell += amount;
+                    grossAmountSell = grossAmountSell.add(amount);
                 } else {
                     str = "0";
                 }
@@ -347,23 +357,40 @@ public class InvoiceService {
             Integer stampDutyBuy = -8256;
             Integer stampDutySell = -10000;
 
-            Integer totalAmountBuy = grossAmountBuy + totalChargeBuy;
-            Integer totalAmountSell = grossAmountSell + totalChargeSell;
-            Integer paymentDueBuy = totalAmountBuy - totalAmountSell;
-            Integer paymentDueSell = totalAmountSell - totalAmountBuy;
+            BigDecimal totalAmountBuy = grossAmountBuy.add(BigDecimal.valueOf(totalChargeBuy));
+            BigDecimal totalAmountSell = grossAmountSell.add(BigDecimal.valueOf(totalChargeSell));
+            BigDecimal paymentDueBuy = totalAmountBuy.subtract(totalAmountSell);
+            BigDecimal paymentDueSell = totalAmountSell.subtract(totalAmountBuy);
 
             String[] tab3col2 = {
                     "Gross Amount", "Brokerage Fee", "V.A.T Brokerage Fee", "IDX Levy", "VAT IDX Levy", "KPEI",
                     "Total Charges", "Sales Tax", "Stamp Duty",
                     "Total Amount", "Payment due to us (IDR)"};
             Integer[] tab3col3 = {
-                    grossAmountBuy, brokFeeBuy, brokFeeBuy * pajak, idxLevyBuy, idxLevyBuy * pajak, KPEIBuy,
-                    totalChargeBuy, salesTaxBuy, stampDutyBuy,
-                    totalAmountBuy, paymentDueBuy};
+                    grossAmountBuy.intValue(),
+                    brokFeeBuy,
+                    BigDecimal.valueOf(brokFeeBuy).multiply(BigDecimal.valueOf(pajak)).intValue(),
+                    idxLevyBuy,
+                    BigDecimal.valueOf(idxLevyBuy).multiply(BigDecimal.valueOf(pajak)).intValue(),
+                    KPEIBuy,
+                    totalChargeBuy,
+                    salesTaxBuy,
+                    stampDutyBuy,
+                    totalAmountBuy.intValue(),
+                    paymentDueBuy.intValue()
+            };
             Integer[] tab3col4 = {
-                    grossAmountSell, brokFeeSell, brokFeeSell * pajak, idxLevySell, idxLevySell * pajak, KPEISell,
-                    totalChargeSell, salesTaxSell, stampDutySell,
-                    totalAmountSell, paymentDueSell};
+                    grossAmountSell.intValue(),
+                    brokFeeSell,
+                    BigDecimal.valueOf(brokFeeSell).multiply(BigDecimal.valueOf(pajak)).intValue(),
+                    idxLevySell,
+                    BigDecimal.valueOf(idxLevySell).multiply(BigDecimal.valueOf(pajak)).intValue(),
+                    KPEISell,
+                    totalChargeSell,
+                    salesTaxSell,
+                    stampDutySell,
+                    totalAmountSell.intValue(),
+                    paymentDueSell.intValue()};
 
             for (int i = 0; i < tab3col2.length; i++) {
                 // column 1 (empty)
@@ -653,7 +680,18 @@ public class InvoiceService {
             executorService.submit(() -> {
                 System.out.println("ON WORKING Thread Name: " + Thread.currentThread().getName());
                 try {
-                    String fileName = createPdf(invoice, tempDir);
+                    //ambil data dari subacc
+                    Subacc subacc = subaccRepository.findByNoCust(invoice.getNoCust());
+                    if (subacc == null) {
+                        throw new RuntimeException("Subacc not found for noCust: " + invoice.getNoCust());
+                    }
+                    // Ambil data Executed berdasarkan noCust (atau logika lain yang sesuai)
+                    Executed executed = executedRepository.findByNoCust(invoice.getNoCust());
+                    if (executed == null) {
+                        throw new RuntimeException("Executed not found for noCust: " + invoice.getNoCust());
+                    }
+
+                    String fileName = createPdf(invoice, subacc, executed, tempDir);
                     pdfFileNames.add(fileName);
 
                 } catch (Exception e) {
