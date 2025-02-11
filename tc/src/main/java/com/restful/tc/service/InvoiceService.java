@@ -28,6 +28,9 @@ import java.util.concurrent.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 @Service
 public class InvoiceService {
     private static final Logger log = LoggerFactory.getLogger(InvoiceService.class);
@@ -135,7 +138,7 @@ public class InvoiceService {
 
             // String[] nnti bisa diganti pakai hasil get dari databasenya aja
             String[] tab1col1 = {"To", "Address", "", "", "Phone/Fax", "Email", "Bank"};
-            String[] tab1col2 = {"jefri", "jl siantan", "rt rw", "jakbar", "0/", "jeff@gmail", "BCA 12345"};
+            String[] tab1col2 = {invoice.getNoCust(), "jl siantan", "rt rw", "jakbar", "0/", "jeff@gmail", "BCA 12345"};
             String[] tab1col3 = {"Document No", "Transaction Date", "Settlement Date", "Currency", "Office", "Sales Person", "SID", "CBest Account", "Commission"};
             String[] tab1col4 = {"25012298BO", "Wednesday, 22-Jan-2025", "Friday, 24-Jan-2025", "IDR", "04", "online", "IDD1508ZD554162", "SQ00198BO00146", "0.1815 %"};
 
@@ -657,6 +660,9 @@ public class InvoiceService {
         //List<Invoice> invoices = invoiceRepository.findDistinctNoCustByToday(); // kalau sudah live prod pakai ini
         List<Invoice> invoices = invoiceRepository.finddistinct10Nocustorderbydtinvdesc();
 
+        LocalDate currentDate = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String dateNow = currentDate.format(formatter);
 
         for (Invoice invoice : invoices) {
             log.info("Cust No: {}", invoice.getNoCust());
@@ -676,7 +682,19 @@ public class InvoiceService {
 
 //        int count = 1;
         for (Invoice invoice : invoices) {
-//            int finalCount = count;
+            //get invoice detail
+            String custNo = invoice.getNoCust();
+            // List<Invoice> detailInvoices = invoiceRepository.findInvoiceDetail(custNo, dateNow); // prod pakai ini
+            List<Invoice> detailInvoices = invoiceRepository.findInvoiceDetail(custNo, "2025-01-31"); // testing
+
+            log.info("=================");
+            log.info("Customer: {}", custNo);
+            log.info("==================");
+
+            for (Invoice detail : detailInvoices) {
+                log.info("Invoice No: {}", detail.getNoInvoice());
+            }
+
             executorService.submit(() -> {
                 System.out.println("ON WORKING Thread Name: " + Thread.currentThread().getName());
                 try {
