@@ -8,6 +8,6 @@ import java.util.List;
 
 @Repository
 public interface ExecutedRepository extends JpaRepository<Executed, String> {
-    List<Executed> findByNoCust(String noCust); // Sesuaikan dengan kolom yang relevan
+    List<Executed> findByNoCust(String noCust);// Sesuaikan dengan kolom yang relevan
 }
 

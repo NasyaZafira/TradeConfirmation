@@ -139,26 +139,27 @@ public class InvoiceService {
             //PARSING DATA
             String docNo = invoice.getDate() + invoice.getNoCust();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, dd-MMM-yyyy");
+            String data = "(" + invoice.getNoCust() + ") " + subacc.getName();
 
             // String[] nnti bisa diganti pakai hasil get dari databasenya aja
-            String[] tab1col1 = {"To", "Address", "", "","", "Phone/Fax", "Email", "Bank"};
+            String[] tab1col1 = {"To", "Address", "", "", "", "Phone/Fax", "Email", "Bank"};
             String[] tab1col2 = {
-                    "(" + invoice.getNoCust() + ") " + subacc.getName() ,
+                    data.replaceAll("\\(\\s*(.*?)\\s*\\)", "($1)"),
                     subacc.getAdd1(),
                     subacc.getAdd2(),
                     subacc.getCityJoin().getDesc(),
                     subacc.getZip() + " " + subacc.getCountryJoin().getDesc(),
-                    subacc.getPhone1(),
+                    subacc.getPhone1() + " / " + subacc.getFax(),
                     subacc.getEmail(),
                     subacc.getBank() + " " + subacc.getAccount()};
             String[] tab1col3 = {"Document No", "Transaction Date", "Settlement Date", "Currency", "Office", "Sales Person", "SID", "CBest Account", "Commission"};
             String[] tab1col4 = {
-                    docNo.replace("-",""),
+                    docNo.replace("-", ""),
                     invoice.getDate().format(formatter),
                     invoice.getDt_due().format(formatter),
                     "IDR Minimum Fee : 0",
                     subacc.getNo_sub(),
-                    subacc.getStaff().getNameStaff() ,
+                    subacc.getStaff().getNameStaff(),
                     subacc.getInvestor_no(),
                     "SQ001" + subacc.getNo_ksei().substring(0, 4) + "001" + subacc.getNo_ksei().substring(4),
                     subacc.getCommission() + "%  (Excluding Sales Tax)"};
@@ -177,7 +178,11 @@ public class InvoiceService {
 
                 // column 2
                 if (i < tab1col1.length) {
-                    cell = new PdfPCell(new Phrase(": " + tab1col2[i], normalFont));
+                    if (i == 0) {
+                        cell = new PdfPCell(new Phrase(": " + tab1col2[i], normalBoldFont));
+                    } else {
+                        cell = new PdfPCell(new Phrase(": " + tab1col2[i], normalFont));
+                    }
                 } else {
                     cell = new PdfPCell(new Phrase("", normalFont));
                 }
@@ -210,18 +215,19 @@ public class InvoiceService {
             doc.add(paragraph);
 
             // TABLE 2 ==================================================================================================================================
-            PdfPTable table2 = new PdfPTable(7); // 7 columns
+            PdfPTable table2 = new PdfPTable(8); // 7 columns
             table2.setWidthPercentage(100); // Full width
             table2.setSpacingBefore(10f);
 
-            float[] columnWidths2 = {3f, 5f, 1f, 2f, 3f, 4f, 4f};
+            float[] columnWidths2 = {1.5f, 1.5f, 5f, 1f, 2f, 3f, 4f, 3f};
             table2.setWidths(columnWidths2);
 
             // string[] nanti diganti aja pake get data dari DB
-            String[] tab2row1 = {"REF# board", "Securities", "Lots", "Shares", "Price", "Amount Buy", "Amount Sell"};
+            String[] tab2row1 = {"REF#", "board", "Securities", "Lots", "Shares", "Price", "Amount Buy", "Amount Sell"};
 
-            String[] refBoard = {executed.get(0).getNoInv() + "" + executed.get(0).getBoard(),  ""};
-            String[] securities = {executed.get(0).getNoShare(), ""};
+            String[] ref = {executed.get(0).getNoInv(), ""};
+            String[] board = {executed.get(0).getBoard(), ""};
+            String[] securities = {executed.get(0).getShare().getNoShare() + " - " + executed.get(0).getShare().getDescr(), ""};
             BigDecimal[] lots = {executed.get(0).getVolDone()};
             BigDecimal[] shares = {executed.get(0).getVolDone()};
             BigDecimal[] price = {executed.get(0).getPrcDone()};
@@ -229,8 +235,10 @@ public class InvoiceService {
             BigDecimal[] amountBuy = {BigDecimal.ZERO};
             BigDecimal[] amountSell = {BigDecimal.ZERO};
 
-            BigDecimal grossAmountBuy = BigDecimal.ZERO;;
-            BigDecimal grossAmountSell = BigDecimal.ZERO;;
+            BigDecimal grossAmountBuy = BigDecimal.ZERO;
+            ;
+            BigDecimal grossAmountSell = BigDecimal.ZERO;
+            ;
 
             PdfPCell cell = new PdfPCell();
             String str = "";
@@ -240,15 +248,37 @@ public class InvoiceService {
                 cell.setBorder(PdfPCell.NO_BORDER);
                 cell.setPaddingBottom(5);
                 cell.setBorderWidthBottom(1f);
+
+                // Atur alignment teks pada setiap kolom
+                if (i == 0 || i == 1 || i == 2) {
+                    cell.setHorizontalAlignment(PdfPCell.ALIGN_LEFT); // Rata kiri untuk "REF# board" dan "Securities"
+                } else {
+                    cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT); // Rata kanan untuk kolom lainnya
+                }
+
                 table2.addCell(cell);
             }
 
-            Integer n = refBoard.length; //banyak data
+            Integer n = ref.length; //banyak data
 
             for (int i = 0; i < n; i++) {
-                // REF#board
-                if (refBoard[i] != null && refBoard[i] != "") {
-                    str = refBoard[i];
+                // REF#
+                if (ref[i] != null && ref[i] != "") {
+                    str = ref[i];
+                } else {
+                    str = "";
+                }
+                cell = new PdfPCell(new Phrase(str, normalFont));
+                cell.setBorder(PdfPCell.NO_BORDER);
+                if (i == n - 1) {
+                    cell.setPaddingBottom(5);
+                    cell.setBorderWidthBottom(1f);
+                }
+                table2.addCell(cell);
+
+                // REF#
+                if (board[i] != null && board[i] != "") {
+                    str = board[i];
                 } else {
                     str = "";
                 }
@@ -287,7 +317,7 @@ public class InvoiceService {
                     str = "0";
                 }
                 System.err.println("LOTS.length: " + lots.length);
-                System.err.println("LOTS REF: " + refBoard.length);
+                System.err.println("LOTS REF: " + ref.length);
 
                 cell = new PdfPCell(new Phrase(str, normalFont));
                 cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
@@ -378,7 +408,7 @@ public class InvoiceService {
             table3.setWidthPercentage(100); // Full width
             table3.setSpacingAfter(10f);
 
-            float[] columnWidths3 = {7f, 7f, 3f, 3f};
+            float[] columnWidths3 = {7f, 7f, 4f, 3f};
             table3.setWidths(columnWidths3);
 
             Integer brokFeeBuy = 11024;
@@ -386,7 +416,7 @@ public class InvoiceService {
             Integer pajak = 11 / 100;
             Integer idxLevyBuy = 2656; //(grossAmountBuy * 0,03) / 100
             Integer idxLevySell = -2477; //(grossAmountSell * 0,03) / 100
-            Integer KPEIBuy = 885 ; //grossAmountBuy * 0,01 / 100
+            Integer KPEIBuy = 885; //grossAmountBuy * 0,01 / 100
             Integer KPEISell = -826; //grossAmountSell * 0,01 / 100
 
             Integer totalChargeBuy = brokFeeBuy + brokFeeBuy * pajak + idxLevyBuy + idxLevyBuy * pajak + KPEIBuy;
@@ -466,7 +496,7 @@ public class InvoiceService {
                 }
                 cell = new PdfPCell(new Phrase(str, normalFont));
                 cell.setBorder(PdfPCell.NO_BORDER);
-                cell.setVerticalAlignment(Element.ALIGN_RIGHT);
+                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
                 if (i == 5) {
                     cell.setPaddingBottom(5);
                     cell.setBorderWidthBottom(1f);
@@ -489,6 +519,7 @@ public class InvoiceService {
                 cell = new PdfPCell(new Phrase(str, normalFont));
                 cell.setBorder(PdfPCell.NO_BORDER);
                 cell.setVerticalAlignment(Element.ALIGN_RIGHT);
+                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
                 if (i == 5) {
                     cell.setPaddingBottom(5);
                     cell.setBorderWidthBottom(1f);
@@ -525,7 +556,7 @@ public class InvoiceService {
             //TABLE 5 ====================================================================================================================================
             PdfPTable bankAccount = new PdfPTable(2);
             bankAccount.setWidthPercentage(100); // Full width
-            float[] columnbankWidth = {4f,18f};
+            float[] columnbankWidth = {4f, 18f};
             bankAccount.setWidths(columnbankWidth);
 
             //column1
@@ -543,9 +574,9 @@ public class InvoiceService {
             //column2
             Paragraph custParagraph = new Paragraph();
             custParagraph.setFont(nineFont);
-            custParagraph.add("BCA\n");
-            custParagraph.add("4991905108\n");
-            custParagraph.add("JEFRI YUNUS\n");
+            custParagraph.add(subacc.getBank() + "\n");
+            custParagraph.add(subacc.getAccount() + "\n");
+            custParagraph.add(subacc.getNameBank() + "\n");
 
             PdfPCell custData = new PdfPCell(custParagraph);
             custData.setBorder(PdfPCell.NO_BORDER);

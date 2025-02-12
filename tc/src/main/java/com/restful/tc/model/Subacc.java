@@ -37,11 +37,15 @@ public class Subacc {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "bank")
+    @Column(name = "bank_sub")
     private String bank;
 
-    @Column(name = "account")
+    @Column(name = "account_sub")
     private String account;
+
+
+    @Column(name = "acc_namesub")
+    private String nameBank;
 
 //    @Column(name = "no_staff")
 //    private String no_staff;
@@ -79,6 +83,13 @@ public class Subacc {
 
     }
 
+    public String getNameBank() {
+        return nameBank;
+    }
+
+    public void setNameBank(String nameBank) {
+        this.nameBank = nameBank;
+    }
 
     public City getCityJoin() {
         return cityJoin;

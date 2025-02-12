@@ -10,17 +10,17 @@ public class Executed {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "no_cust")
-    private String noCust;
-
     @Column(name = "no_done")
     private String noDone;
 
     @Column(name = "board")
     private String board;
 
-    @Column(name = "no_share")
-    private String noShare;
+    @Column(name = "no_cust")
+    private String noCust;
+
+//    @Column(name = "no_share")
+//    private String noShare;
 
     @Column(name = "vol_done")
     private BigDecimal volDone;
@@ -33,6 +33,18 @@ public class Executed {
 
     @Column(name = "bors")
     private String bors;
+
+    public Share getShare() {
+        return share;
+    }
+
+    public void setShare(Share share) {
+        this.share = share;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "no_share", referencedColumnName = "no_share")
+    private Share share;
 
     public Executed() {
 
@@ -76,13 +88,13 @@ public class Executed {
         this.board = board;
     }
 
-    public String getNoShare() {
-        return noShare;
-    }
-
-    public void setNoShare(String noShare) {
-        this.noShare = noShare;
-    }
+//    public String getNoShare() {
+//        return noShare;
+//    }
+//
+//    public void setNoShare(String noShare) {
+//        this.noShare = noShare;
+//    }
 
     public BigDecimal getVolDone() {
         return volDone;
