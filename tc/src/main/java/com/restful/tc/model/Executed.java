@@ -1,8 +1,10 @@
 package com.restful.tc.model;
 
 import jakarta.persistence.*;
+import org.springframework.cglib.core.Local;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "executed")
@@ -18,6 +20,10 @@ public class Executed {
 
     @Column(name = "no_cust")
     private String noCust;
+
+
+    @Column(name = "dt_inv")
+    private LocalDate executionDate;
 
 //    @Column(name = "no_share")
 //    private String noShare;
@@ -48,6 +54,15 @@ public class Executed {
 
     public Executed() {
 
+    }
+
+
+    public LocalDate getExecutionDate() {
+        return executionDate;
+    }
+
+    public void setExecutionDate(LocalDate executionDate) {
+        this.executionDate = executionDate;
     }
     public String getNoCust() {
         return noCust;

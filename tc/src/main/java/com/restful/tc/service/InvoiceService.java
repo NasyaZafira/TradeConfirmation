@@ -219,26 +219,12 @@ public class InvoiceService {
             table2.setWidthPercentage(100); // Full width
             table2.setSpacingBefore(10f);
 
-            float[] columnWidths2 = {1.5f, 1.5f, 5f, 1f, 2f, 3f, 4f, 3f};
+
+            float[] columnWidths2 = {1.5f, 1.5f, 6f, 2f, 2f, 3f, 4f, 3f};
             table2.setWidths(columnWidths2);
 
             // string[] nanti diganti aja pake get data dari DB
             String[] tab2row1 = {"REF#", "board", "Securities", "Lots", "Shares", "Price", "Amount Buy", "Amount Sell"};
-
-            String[] ref = {executed.get(0).getNoInv(), ""};
-            String[] board = {executed.get(0).getBoard(), ""};
-            String[] securities = {executed.get(0).getShare().getNoShare() + " - " + executed.get(0).getShare().getDescr(), ""};
-            BigDecimal[] lots = {executed.get(0).getVolDone()};
-            BigDecimal[] shares = {executed.get(0).getVolDone()};
-            BigDecimal[] price = {executed.get(0).getPrcDone()};
-            String[] isBuy = {executed.get(0).getBors()};
-            BigDecimal[] amountBuy = {BigDecimal.ZERO};
-            BigDecimal[] amountSell = {BigDecimal.ZERO};
-
-            BigDecimal grossAmountBuy = BigDecimal.ZERO;
-            ;
-            BigDecimal grossAmountSell = BigDecimal.ZERO;
-            ;
 
             PdfPCell cell = new PdfPCell();
             String str = "";
@@ -259,147 +245,213 @@ public class InvoiceService {
                 table2.addCell(cell);
             }
 
-            Integer n = ref.length; //banyak data
-
-            for (int i = 0; i < n; i++) {
+            for (Executed exec : executed) {
                 // REF#
-                if (ref[i] != null && ref[i] != "") {
-                    str = ref[i];
-                } else {
-                    str = "";
-                }
-                cell = new PdfPCell(new Phrase(str, normalFont));
+                cell = new PdfPCell(new Phrase(exec.getNoInv(), normalFont));
+                cell.setHorizontalAlignment(PdfPCell.ALIGN_LEFT); // Rata kanan untuk kolom lainnya
                 cell.setBorder(PdfPCell.NO_BORDER);
-                if (i == n - 1) {
-                    cell.setPaddingBottom(5);
-                    cell.setBorderWidthBottom(1f);
-                }
                 table2.addCell(cell);
 
-                // REF#
-                if (board[i] != null && board[i] != "") {
-                    str = board[i];
-                } else {
-                    str = "";
-                }
-                cell = new PdfPCell(new Phrase(str, normalFont));
+                // Board
+                cell = new PdfPCell(new Phrase(exec.getBoard(), normalFont));
+                cell.setHorizontalAlignment(PdfPCell.ALIGN_LEFT); // Rata kanan untuk kolom lainnya
+                // Rata kanan untuk kolom lainnya
                 cell.setBorder(PdfPCell.NO_BORDER);
-                if (i == n - 1) {
-                    cell.setPaddingBottom(5);
-                    cell.setBorderWidthBottom(1f);
-                }
                 table2.addCell(cell);
 
-                // securities
-                if (securities[i] != null && securities[i] != "") {
-                    str = securities[i];
-                } else {
-                    str = "";
-                }
-                cell = new PdfPCell(new Phrase(str, normalFont));
+                // Securities
+                String securities = exec.getShare().getNoShare() + " - " + exec.getShare().getDescr();
+                cell = new PdfPCell(new Phrase(securities, normalFont));
+                cell.setHorizontalAlignment(PdfPCell.ALIGN_LEFT); // Rata kanan untuk kolom lainnya
+                // Rata kanan untuk kolom lainnya
                 cell.setBorder(PdfPCell.NO_BORDER);
-                if (i == n - 1) {
-                    cell.setPaddingBottom(5);
-                    cell.setBorderWidthBottom(1f);
-                }
                 table2.addCell(cell);
 
-                // lots
-//                if (lots[i] != null) {
+                // Lots
+                cell = new PdfPCell(new Phrase(exec.getVolDone().toString(), normalFont));
+                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT); // Rata kanan untuk kolom lainnya
+                cell.setBorder(PdfPCell.NO_BORDER);
+                table2.addCell(cell);
+
+                // Shares
+                cell = new PdfPCell(new Phrase(exec.getVolDone().toString(), normalFont));
+                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT); // Rata kanan untuk kolom lainnya
+                cell.setBorder(PdfPCell.NO_BORDER);
+                table2.addCell(cell);
+
+                // Price
+                cell = new PdfPCell(new Phrase(exec.getPrcDone().toString(), normalFont));
+                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT); // Rata kanan untuk kolom lainnya
+                cell.setBorder(PdfPCell.NO_BORDER);
+                table2.addCell(cell);
+
+                // Amount Buy
+                BigDecimal amountBuy = exec.getBors().equalsIgnoreCase("B") ? exec.getVolDone().multiply(exec.getPrcDone()) : BigDecimal.ZERO;
+                String amountBuyResult = adjustNumberFormat(amountBuy.intValue(), 0);
+                cell = new PdfPCell(new Phrase(amountBuyResult, normalFont));
+                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT); // Rata kanan untuk kolom lainnya
+                cell.setBorder(PdfPCell.NO_BORDER);
+                table2.addCell(cell);
+
+                // Amount Sell
+                BigDecimal amountSell = exec.getBors().equalsIgnoreCase("S") ? exec.getVolDone().multiply(exec.getPrcDone()) : BigDecimal.ZERO;
+                String amountSellResult = adjustNumberFormat(amountSell.intValue(),0);
+                cell = new PdfPCell(new Phrase(amountSellResult, normalFont));
+                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT); // Rata kanan untuk kolom lainnya
+                cell.setBorder(PdfPCell.NO_BORDER);
+                table2.addCell(cell);
+
+            }
+
+            PdfPCell emptyCell = new PdfPCell(new Phrase(" ")); // Baris kosong
+            emptyCell.setColspan(8); // Sesuaikan dengan jumlah kolom tabel
+            emptyCell.setBorder(PdfPCell.NO_BORDER);
+            emptyCell.setFixedHeight(5f);
+            emptyCell.setBorderWidthBottom(1f); // Tambahkan garis bawah
+            table2.addCell(emptyCell);
+
+
+//            Integer n = ref.length; //banyak data
+
+//            for (int i = 0; i < n; i++) {
+//                // REF#
+//                if (ref[i] != null && ref[i] != "") {
+//                    str = ref[i];
+//                } else {
+//                    str = "";
+//                }
+//                cell = new PdfPCell(new Phrase(str, normalFont));
+//                cell.setBorder(PdfPCell.NO_BORDER);
+//                if (i == n - 1) {
+//                    cell.setPaddingBottom(5);
+//                    cell.setBorderWidthBottom(1f);
+//                }
+//                table2.addCell(cell);
+//
+//                // REF#
+//                if (board[i] != null && board[i] != "") {
+//                    str = board[i];
+//                } else {
+//                    str = "";
+//                }
+//                cell = new PdfPCell(new Phrase(str, normalFont));
+//                cell.setBorder(PdfPCell.NO_BORDER);
+//                if (i == n - 1) {
+//                    cell.setPaddingBottom(5);
+//                    cell.setBorderWidthBottom(1f);
+//                }
+//                table2.addCell(cell);
+//
+//                // securities
+//                if (securities[i] != null && securities[i] != "") {
+//                    str = securities[i];
+//                } else {
+//                    str = "";
+//                }
+//                cell = new PdfPCell(new Phrase(str, normalFont));
+//                cell.setBorder(PdfPCell.NO_BORDER);
+//                if (i == n - 1) {
+//                    cell.setPaddingBottom(5);
+//                    cell.setBorderWidthBottom(1f);
+//                }
+//                table2.addCell(cell);
+//
+//                // lots
+////                if (lots[i] != null) {
+////                    str = lots[i].toString();
+////                } else {
+////                    str = "0";
+////                }
+//
+//                if (i < lots.length) {
 //                    str = lots[i].toString();
 //                } else {
 //                    str = "0";
 //                }
-
-                if (i < lots.length) {
-                    str = lots[i].toString();
-                } else {
-                    str = "0";
-                }
-                System.err.println("LOTS.length: " + lots.length);
-                System.err.println("LOTS REF: " + ref.length);
-
-                cell = new PdfPCell(new Phrase(str, normalFont));
-                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
-                cell.setBorder(PdfPCell.NO_BORDER);
-                if (i == n - 1) {
-                    cell.setPaddingBottom(5);
-                    cell.setBorderWidthBottom(1f);
-                }
-                table2.addCell(cell);
-
-                // shares
-                if (i < shares.length) {
-                    str = shares[i].toString();
-                } else {
-                    str = "0";
-                }
-                System.err.println("SHARE.length: " + shares.length);
-//                System.err.println("SHARE value: " + shares[i]);
-
-                cell = new PdfPCell(new Phrase(str, normalFont));
-                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
-                cell.setBorder(PdfPCell.NO_BORDER);
-                if (i == n - 1) {
-                    cell.setPaddingBottom(5);
-                    cell.setBorderWidthBottom(1f);
-                }
-                table2.addCell(cell);
-
-                // price
-                if (i < price.length) {
-                    str = price[i].toString();
-                } else {
-                    str = "0";
-                }
-                System.err.println("PRICE.length: " + shares.length);
-//                System.err.println("PRICE.value: " + shares[i]);
-
-                cell = new PdfPCell(new Phrase(str, normalFont));
-                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
-                cell.setBorder(PdfPCell.NO_BORDER);
-                if (i == n - 1) {
-                    cell.setPaddingBottom(5);
-                    cell.setBorderWidthBottom(1f);
-                }
-                table2.addCell(cell);
-
-                // amount buy
-                if (i < shares.length && shares[i] != null && price[i] != null && isBuy[i].equals("B")) {
-                    BigDecimal amount = shares[i].multiply(price[i]);
-                    str = amount.toString();
-                    amountBuy[i] = amount;
-                    grossAmountBuy = grossAmountBuy.add(amount);
-                } else {
-                    str = "0";
-                }
-                cell = new PdfPCell(new Phrase(str, normalFont));
-                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
-                cell.setBorder(PdfPCell.NO_BORDER);
-                if (i == n - 1) {
-                    cell.setPaddingBottom(5);
-                    cell.setBorderWidthBottom(1f);
-                }
-                table2.addCell(cell);
-
-                // amount sell
-                if (i < shares.length && shares[i] != null && price[i] != null && isBuy[i].equals("S")) {
-                    BigDecimal amount = shares[i].multiply(price[i]);
-                    str = amount.toString();
-                    amountSell[i] = amount;
-                    grossAmountSell = grossAmountSell.add(amount);
-                } else {
-                    str = "0";
-                }
-                cell = new PdfPCell(new Phrase(str, normalFont));
-                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
-                cell.setBorder(PdfPCell.NO_BORDER);
-                if (i == n - 1) {
-                    cell.setPaddingBottom(5);
-                    cell.setBorderWidthBottom(1f);
-                }
-                table2.addCell(cell);
-            }
+//                System.err.println("LOTS.length: " + lots.length);
+//                System.err.println("LOTS REF: " + ref.length);
+//
+//                cell = new PdfPCell(new Phrase(str, normalFont));
+//                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
+//                cell.setBorder(PdfPCell.NO_BORDER);
+//                if (i == n - 1) {
+//                    cell.setPaddingBottom(5);
+//                    cell.setBorderWidthBottom(1f);
+//                }
+//                table2.addCell(cell);
+//
+//                // shares
+//                if (i < shares.length) {
+//                    str = shares[i].toString();
+//                } else {
+//                    str = "0";
+//                }
+//                System.err.println("SHARE.length: " + shares.length);
+////                System.err.println("SHARE value: " + shares[i]);
+//
+//                cell = new PdfPCell(new Phrase(str, normalFont));
+//                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
+//                cell.setBorder(PdfPCell.NO_BORDER);
+//                if (i == n - 1) {
+//                    cell.setPaddingBottom(5);
+//                    cell.setBorderWidthBottom(1f);
+//                }
+//                table2.addCell(cell);
+//
+//                // price
+//                if (i < price.length) {
+//                    str = price[i].toString();
+//                } else {
+//                    str = "0";
+//                }
+//                System.err.println("PRICE.length: " + shares.length);
+////                System.err.println("PRICE.value: " + shares[i]);
+//
+//                cell = new PdfPCell(new Phrase(str, normalFont));
+//                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
+//                cell.setBorder(PdfPCell.NO_BORDER);
+//                if (i == n - 1) {
+//                    cell.setPaddingBottom(5);
+//                    cell.setBorderWidthBottom(1f);
+//                }
+//                table2.addCell(cell);
+//
+//                // amount buy
+//                if (i < shares.length && shares[i] != null && price[i] != null && isBuy[i].equals("B")) {
+//                    BigDecimal amount = shares[i].multiply(price[i]);
+//                    str = amount.toString();
+//                    amountBuy[i] = amount;
+//                    grossAmountBuy = grossAmountBuy.add(amount);
+//                } else {
+//                    str = "0";
+//                }
+//                cell = new PdfPCell(new Phrase(str, normalFont));
+//                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
+//                cell.setBorder(PdfPCell.NO_BORDER);
+//                if (i == n - 1) {
+//                    cell.setPaddingBottom(5);
+//                    cell.setBorderWidthBottom(1f);
+//                }
+//                table2.addCell(cell);
+//
+//                // amount sell
+//                if (i < shares.length && shares[i] != null && price[i] != null && isBuy[i].equals("S")) {
+//                    BigDecimal amount = shares[i].multiply(price[i]);
+//                    str = amount.toString();
+//                    amountSell[i] = amount;
+//                    grossAmountSell = grossAmountSell.add(amount);
+//                } else {
+//                    str = "0";
+//                }
+//                cell = new PdfPCell(new Phrase(str, normalFont));
+//                cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
+//                cell.setBorder(PdfPCell.NO_BORDER);
+//                if (i == n - 1) {
+//                    cell.setPaddingBottom(5);
+//                    cell.setBorderWidthBottom(1f);
+//                }
+//                table2.addCell(cell);
+//            }
 
             doc.add(table2);
 
@@ -426,10 +478,22 @@ public class InvoiceService {
             Integer stampDutyBuy = -8256;
             Integer stampDutySell = -10000;
 
+            BigDecimal grossAmountBuy = BigDecimal.ZERO;
+            BigDecimal grossAmountSell = BigDecimal.ZERO;
+
             BigDecimal totalAmountBuy = grossAmountBuy.add(BigDecimal.valueOf(totalChargeBuy));
             BigDecimal totalAmountSell = grossAmountSell.add(BigDecimal.valueOf(totalChargeSell));
             BigDecimal paymentDueBuy = totalAmountBuy.subtract(totalAmountSell);
             BigDecimal paymentDueSell = totalAmountSell.subtract(totalAmountBuy);
+
+            Integer paymentDue1 = 0;
+            Integer paymentDue2 = 0;
+
+            if (totalAmountBuy.compareTo(totalAmountSell) > 0) {
+                paymentDue2 = paymentDueBuy.subtract(paymentDueSell).intValue();
+            } else {
+                paymentDue2 = paymentDueSell.subtract(paymentDueBuy).intValue();
+            }
 
             String[] tab3col2 = {
                     "Gross Amount", "Brokerage Fee", "V.A.T Brokerage Fee", "IDX Levy", "VAT IDX Levy", "KPEI",
@@ -446,7 +510,7 @@ public class InvoiceService {
                     salesTaxBuy,
                     stampDutyBuy,
                     totalAmountBuy.intValue(),
-                    paymentDueBuy.intValue()
+                    paymentDue2
             };
             Integer[] tab3col4 = {
                     grossAmountSell.intValue(),
@@ -459,7 +523,8 @@ public class InvoiceService {
                     salesTaxSell,
                     stampDutySell,
                     totalAmountSell.intValue(),
-                    paymentDueSell.intValue()};
+                    paymentDue2
+            };
 
             for (int i = 0; i < tab3col2.length; i++) {
                 // column 1 (empty)
@@ -773,7 +838,9 @@ public class InvoiceService {
                         throw new RuntimeException("Subacc not found for noCust: " + invoice.getNoCust());
                     }
                     // Ambil data Executed berdasarkan noCust (atau logika lain yang sesuai)
-                    List<Executed> executed = executedRepository.findByNoCust(invoice.getNoCust());
+//                    List<Executed> executed = executedRepository.findByNoCust(invoice.getNoCust());
+                    LocalDate date = LocalDate.of(2025, 1, 22);
+                    List<Executed> executed = executedRepository.findByNoCustAndExecutionDate(invoice.getNoCust(), date);;
                     if (executed == null) {
                         throw new RuntimeException("Executed not found for noCust: " + invoice.getNoCust());
                     }
