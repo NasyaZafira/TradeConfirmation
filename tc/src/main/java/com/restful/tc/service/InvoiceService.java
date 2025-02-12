@@ -229,6 +229,9 @@ public class InvoiceService {
             PdfPCell cell = new PdfPCell();
             String str = "";
 
+            BigDecimal grossAmountBuy = BigDecimal.ZERO;
+            BigDecimal grossAmountSell = BigDecimal.ZERO;
+
             for (int i = 0; i < tab2row1.length; i++) {
                 cell = new PdfPCell(new Phrase(tab2row1[i], normalFont));
                 cell.setBorder(PdfPCell.NO_BORDER);
@@ -287,6 +290,7 @@ public class InvoiceService {
 
                 // Amount Buy
                 BigDecimal amountBuy = exec.getBors().equalsIgnoreCase("B") ? exec.getVolDone().multiply(exec.getPrcDone()) : BigDecimal.ZERO;
+                grossAmountBuy = grossAmountBuy.add(amountBuy);
                 String amountBuyResult = adjustNumberFormat(amountBuy.intValue(), 0);
                 cell = new PdfPCell(new Phrase(amountBuyResult, normalFont));
                 cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT); // Rata kanan untuk kolom lainnya
@@ -295,6 +299,7 @@ public class InvoiceService {
 
                 // Amount Sell
                 BigDecimal amountSell = exec.getBors().equalsIgnoreCase("S") ? exec.getVolDone().multiply(exec.getPrcDone()) : BigDecimal.ZERO;
+                grossAmountSell = grossAmountSell.add(amountSell);
                 String amountSellResult = adjustNumberFormat(amountSell.intValue(),0);
                 cell = new PdfPCell(new Phrase(amountSellResult, normalFont));
                 cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT); // Rata kanan untuk kolom lainnya
@@ -478,8 +483,6 @@ public class InvoiceService {
             Integer stampDutyBuy = -8256;
             Integer stampDutySell = -10000;
 
-            BigDecimal grossAmountBuy = BigDecimal.ZERO;
-            BigDecimal grossAmountSell = BigDecimal.ZERO;
 
             BigDecimal totalAmountBuy = grossAmountBuy.add(BigDecimal.valueOf(totalChargeBuy));
             BigDecimal totalAmountSell = grossAmountSell.add(BigDecimal.valueOf(totalChargeSell));
