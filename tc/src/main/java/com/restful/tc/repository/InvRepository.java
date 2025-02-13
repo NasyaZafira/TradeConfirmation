@@ -5,9 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 import java.util.Date;
+import java.util.Map;
 
 
 public interface InvRepository extends JpaRepository<Invoice, Long> {
@@ -21,6 +24,7 @@ public interface InvRepository extends JpaRepository<Invoice, Long> {
             "        no_cust,\n" +
             "        dt_due,\n" +
             "        comm,\n" +
+            "         bors,\n"+
             "        ROW_NUMBER() OVER (PARTITION BY no_cust ORDER BY no_inv DESC) AS rn\n" +
             "    FROM \n" +
             "        Invoice\n" +
@@ -33,7 +37,8 @@ public interface InvRepository extends JpaRepository<Invoice, Long> {
             "    no_inv,\n" +
             "    no_cust,\n" +
             "    dt_due,\n" +
-            "    comm\n" +
+            "    comm,\n" +
+            "    bors\n"+
             "FROM \n" +
             "    FilteredData\n" +
             "WHERE \n" +

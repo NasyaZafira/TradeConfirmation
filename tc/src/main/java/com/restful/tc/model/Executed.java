@@ -1,7 +1,6 @@
 package com.restful.tc.model;
 
 import jakarta.persistence.*;
-import org.springframework.cglib.core.Local;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,12 +20,8 @@ public class Executed {
     @Column(name = "no_cust")
     private String noCust;
 
-
     @Column(name = "dt_inv")
     private LocalDate executionDate;
-
-//    @Column(name = "no_share")
-//    private String noShare;
 
     @Column(name = "vol_done")
     private BigDecimal volDone;
@@ -37,56 +32,32 @@ public class Executed {
     @Column(name = "no_inv")
     private String noInv;
 
+    public Executed(Share share, String bors, String noInv, BigDecimal prcDone, BigDecimal volDone, LocalDate executionDate, String noCust, String board, String noDone) {
+        this.share = share;
+        this.bors = bors;
+        this.noInv = noInv;
+        this.prcDone = prcDone;
+        this.volDone = volDone;
+        this.executionDate = executionDate;
+        this.noCust = noCust;
+        this.board = board;
+        this.noDone = noDone;
+    }
+
     @Column(name = "bors")
     private String bors;
-
-    public Share getShare() {
-        return share;
-    }
-
-    public void setShare(Share share) {
-        this.share = share;
-    }
 
     @ManyToOne
     @JoinColumn(name = "no_share", referencedColumnName = "no_share")
     private Share share;
 
+    // Default no-argument constructor (required by Hibernate)
     public Executed() {
-
     }
 
 
-    public LocalDate getExecutionDate() {
-        return executionDate;
-    }
 
-    public void setExecutionDate(LocalDate executionDate) {
-        this.executionDate = executionDate;
-    }
-    public String getNoCust() {
-        return noCust;
-    }
-
-    public void setNoCust(String noCust) {
-        this.noCust = noCust;
-    }
-    public String getNoInv() {
-        return noInv;
-    }
-
-    public void setNoInv(String noInv) {
-        this.noInv = noInv;
-    }
-
-    public String getBors() {
-        return bors;
-    }
-
-    public void setBors(String bors) {
-        this.bors = bors;
-    }
-
+    // Getters and setters
     public String getNoDone() {
         return noDone;
     }
@@ -103,13 +74,21 @@ public class Executed {
         this.board = board;
     }
 
-//    public String getNoShare() {
-//        return noShare;
-//    }
-//
-//    public void setNoShare(String noShare) {
-//        this.noShare = noShare;
-//    }
+    public String getNoCust() {
+        return noCust;
+    }
+
+    public void setNoCust(String noCust) {
+        this.noCust = noCust;
+    }
+
+    public LocalDate getExecutionDate() {
+        return executionDate;
+    }
+
+    public void setExecutionDate(LocalDate executionDate) {
+        this.executionDate = executionDate;
+    }
 
     public BigDecimal getVolDone() {
         return volDone;
@@ -127,4 +106,27 @@ public class Executed {
         this.prcDone = prcDone;
     }
 
+    public String getNoInv() {
+        return noInv;
+    }
+
+    public void setNoInv(String noInv) {
+        this.noInv = noInv;
+    }
+
+    public String getBors() {
+        return bors;
+    }
+
+    public void setBors(String bors) {
+        this.bors = bors;
+    }
+
+    public Share getShare() {
+        return share;
+    }
+
+    public void setShare(Share share) {
+        this.share = share;
+    }
 }

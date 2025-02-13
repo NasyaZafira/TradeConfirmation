@@ -28,8 +28,21 @@ public class Invoice {
     private BigDecimal comm;
 
 
+    @Column(name = "bors")
+    private String bors;
+
+
     public Invoice() {
     }
+
+    public String getBors() {
+        return bors;
+    }
+
+    public void setBors(String bors) {
+        this.bors = bors;
+    }
+
     public BigDecimal getComm() {
         return comm;
     }
